@@ -1,8 +1,8 @@
 # Build skript pro Startér Launcher
-# Kompiluje LauncherAll.cs do spustitelného Startér.exe
+# Kompiluje LauncherAll.cs do spustitelného Starter.exe
 
 param(
-    [string]$OutputName = "Startér.exe",
+    [string]$OutputName = "Starter.exe",
     [string]$SourceFile = "LauncherAll.cs",
     [switch]$Verbose
 )

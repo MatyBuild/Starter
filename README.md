@@ -34,7 +34,7 @@ Startér je kompaktní Windows launcher napsaný v C#, který automatizuje spou�
 # Najděte csc.exe ve vašem .NET Framework
 # Typicky: C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe
 
-csc.exe /target:exe /out:Startér.exe /platform:anycpu /optimize+ ^
+csc.exe /target:exe /out:Starter.exe /platform:anycpu /optimize+ ^
   /reference:System.dll ^
   /reference:System.Core.dll ^
   /reference:UIAutomationClient.dll ^
@@ -48,19 +48,19 @@ csc.exe /target:exe /out:Startér.exe /platform:anycpu /optimize+ ^
 
 ```batch
 # Spuštění s konfiguračním souborem
-.\Startér.exe --config ".\config.json"
+.\Starter.exe --config ".\config.json"
 
 # S logováním do souboru
-.\Startér.exe --config ".\config.json" --log ".\launcher.log"
+.\Starter.exe --config ".\config.json" --log ".\launcher.log"
 
 # Testovací režim (nespouští aplikace)
-.\Startér.exe --config ".\config.json" --dry-run
+.\Starter.exe --config ".\config.json" --dry-run
 
 # Vlastní timeout pro čekání na okna
-.\Startér.exe --config ".\config.json" --timeoutWindow 60
+.\Starter.exe --config ".\config.json" --timeoutWindow 60
 
 # Kombinace parametrů
-.\Startér.exe --config ".\config.json" --timeoutWindow 60 --log ".\launcher.log"
+.\Starter.exe --config ".\config.json" --timeoutWindow 60 --log ".\launcher.log"
 ```
 
 ### Parametry příkazové řádky

@@ -1,8 +1,8 @@
 # Build skript pro Startér Launcher (minimální verze bez UI Automation)
-# Kompiluje LauncherAll.cs do spustitelného Startér.exe pouze s WinAPI
+# Kompiluje LauncherAll.cs do spustitelného Starter.exe pouze s WinAPI
 
 param(
-    [string]$OutputName = "Startér.exe",
+    [string]$OutputName = "Starter.exe",
     [string]$SourceFile = "LauncherAll.cs",
     [switch]$Verbose
 )

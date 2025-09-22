@@ -267,9 +267,23 @@ namespace ButtonRecognitionTool
         {
             if (string.IsNullOrEmpty(className)) return false;
             
-            return buttonClassNames.Exists(c => 
-                string.Equals(c, className, StringComparison.OrdinalIgnoreCase) ||
-                className.ToLower().Contains("button"));
+            // Check explicit button class names first
+            bool isExplicitButton = buttonClassNames.Exists(c => 
+                string.Equals(c, className, StringComparison.OrdinalIgnoreCase));
+                
+            if (isExplicitButton) return true;
+            
+            // Check for common button patterns
+            string lowerClassName = className.ToLower();
+            return lowerClassName.Contains("button") || 
+                   lowerClassName.Contains("btn") ||
+                   // Qt specific patterns
+                   lowerClassName.Contains("qpushbutton") ||
+                   lowerClassName.Contains("qtoolbutton") ||
+                   // Windows Forms patterns  
+                   lowerClassName.Contains("windowsforms") && lowerClassName.Contains("button") ||
+                   // WPF patterns
+                   lowerClassName.Contains("system.windows.controls.button");
         }
 
         private ButtonInfo CreateButtonInfo(IntPtr handle, string className)
@@ -386,6 +400,8 @@ namespace ButtonRecognitionTool
         {
             try
             {
+                Console.WriteLine("Trying EnumChildWindows API...");
+                
                 // Try EnumChildWindows API as alternative
                 EnumChildWindowsProc childProc = (hWnd, lParam) =>
                 {
@@ -396,6 +412,7 @@ namespace ButtonRecognitionTool
                         {
                             allControls.Add(className);
                             allHandles.Add(hWnd);
+                            Console.WriteLine($"Found child: {className} (Handle: {hWnd})");
                         }
                     }
                     catch { }
@@ -403,6 +420,13 @@ namespace ButtonRecognitionTool
                 };
                 
                 EnumChildWindows(parentHandle, childProc, IntPtr.Zero);
+                
+                // If still no children, try to enumerate all windows from this process
+                if (allControls.Count == 0)
+                {
+                    Console.WriteLine("No child windows found, trying process-wide window enumeration...");
+                    EnumerateProcessWindows(parentHandle, allControls, allHandles);
+                }
             }
             catch (Exception ex)
             {
@@ -410,9 +434,76 @@ namespace ButtonRecognitionTool
             }
         }
         
+        private void EnumerateProcessWindows(IntPtr mainWindowHandle, List<string> allControls, List<IntPtr> allHandles)
+        {
+            try
+            {
+                // Get the process ID from main window
+                uint processId;
+                GetWindowThreadProcessId(mainWindowHandle, out processId);
+                
+                Console.WriteLine($"Enumerating all windows for process ID: {processId}");
+                
+                // Enumerate all windows and filter by process ID
+                EnumWindowsProc windowProc = (hWnd, lParam) =>
+                {
+                    try
+                    {
+                        uint windowProcessId;
+                        GetWindowThreadProcessId(hWnd, out windowProcessId);
+                        
+                        // Only process windows belonging to our target process
+                        if (windowProcessId == processId)
+                        {
+                            string className = WindowsAPIHelper.GetClassName(hWnd);
+                            string windowText = WindowsAPIHelper.GetWindowText(hWnd);
+                            bool isVisible = WindowsAPIHelper.IsWindowVisible(hWnd);
+                            
+                            if (!string.IsNullOrEmpty(className))
+                            {
+                                allControls.Add(className);
+                                allHandles.Add(hWnd);
+                                Console.WriteLine($"Process window: {className} | Text: '{windowText}' | Visible: {isVisible} | Handle: {hWnd}");
+                                
+                                // Also try to find children of this window
+                                EnumChildWindows(hWnd, (childHWnd, childLParam) =>
+                                {
+                                    try
+                                    {
+                                        string childClassName = WindowsAPIHelper.GetClassName(childHWnd);
+                                        string childText = WindowsAPIHelper.GetWindowText(childHWnd);
+                                        if (!string.IsNullOrEmpty(childClassName))
+                                        {
+                                            allControls.Add(childClassName);
+                                            allHandles.Add(childHWnd);
+                                            Console.WriteLine($"  Child: {childClassName} | Text: '{childText}' | Handle: {childHWnd}");
+                                        }
+                                    }
+                                    catch { }
+                                    return true;
+                                }, IntPtr.Zero);
+                            }
+                        }
+                    }
+                    catch { }
+                    return true; // Continue enumeration
+                };
+                
+                EnumWindows(windowProc, IntPtr.Zero);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Process window enumeration failed: {ex.Message}");
+            }
+        }
+        
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         public static extern bool EnumChildWindows(IntPtr hWndParent, EnumChildWindowsProc lpEnumFunc, IntPtr lParam);
         
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        public static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
+        
         public delegate bool EnumChildWindowsProc(IntPtr hWnd, IntPtr lParam);
+        public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
     }
 }

@@ -153,11 +153,19 @@ namespace ButtonRecognitionTool
             }
 
             Console.WriteLine($"\n=== Discovering Buttons in {currentApp.WindowTitle} ===");
-            recognizer.DiscoverButtons(currentApp);
+            Console.Write("Enable debug mode to see all controls? (y/n): ");
+            string debugChoice = Console.ReadLine()?.Trim().ToLower();
+            bool debugMode = debugChoice == "y" || debugChoice == "yes";
+            
+            recognizer.DiscoverButtons(currentApp, debugMode);
             
             if (currentApp.Buttons.Count == 0)
             {
                 Console.WriteLine("No buttons found. The application might use custom controls or different button classes.");
+                if (!debugMode)
+                {
+                    Console.WriteLine("Try running discovery again with debug mode to see all available controls.");
+                }
             }
             else
             {

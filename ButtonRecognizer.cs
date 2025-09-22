@@ -44,7 +44,25 @@ namespace ButtonRecognitionTool
             "ToolbarButton32",
             "TButton",
             "WindowsForms10.Button",
-            "msctls_toolbarbutton32"
+            "msctls_toolbarbutton32",
+            // WPF Controls
+            "Button",
+            "System.Windows.Controls.Button",
+            "WPF.Button",
+            "ButtonBase",
+            // Windows Forms variations
+            "WindowsForms10.BUTTON",
+            "WindowsForms10.button",
+            // Qt Controls
+            "QPushButton",
+            "QToolButton",
+            // Other common button classes
+            "HwndHost",
+            "Static",
+            "STATIC",
+            // Custom controls that might be buttons
+            "Control",
+            "UserControl"
         };
 
         public ApplicationInfo FindApplicationByName(string processName)
@@ -131,7 +149,7 @@ namespace ButtonRecognitionTool
         [System.Runtime.InteropServices.DllImport("user32.dll", SetLastError = true)]
         static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
 
-        public void DiscoverButtons(ApplicationInfo appInfo)
+        public void DiscoverButtons(ApplicationInfo appInfo, bool debugMode = false)
         {
             if (appInfo?.MainWindowHandle == IntPtr.Zero)
             {
@@ -144,8 +162,22 @@ namespace ButtonRecognitionTool
 
             try
             {
-                EnumerateChildWindows(appInfo.MainWindowHandle, appInfo.Buttons);
+                List<string> allControls = new List<string>();
+                EnumerateChildWindows(appInfo.MainWindowHandle, appInfo.Buttons, debugMode ? allControls : null);
+                
                 Console.WriteLine($"Found {appInfo.Buttons.Count} buttons");
+
+                if (debugMode && allControls.Count > 0)
+                {
+                    Console.WriteLine($"\n=== DEBUG: All found controls ({allControls.Count}) ===\n");
+                    var uniqueClasses = allControls.Distinct().OrderBy(c => c);
+                    foreach (var className in uniqueClasses)
+                    {
+                        int count = allControls.Count(c => c == className);
+                        Console.WriteLine($"  {className} ({count})");
+                    }
+                    Console.WriteLine();
+                }
 
                 foreach (var button in appInfo.Buttons)
                 {
@@ -158,7 +190,7 @@ namespace ButtonRecognitionTool
             }
         }
 
-        private void EnumerateChildWindows(IntPtr parentHandle, List<ButtonInfo> buttons)
+        private void EnumerateChildWindows(IntPtr parentHandle, List<ButtonInfo> buttons, List<string> allControls = null)
         {
             IntPtr childHandle = WindowsAPIHelper.GetWindow(parentHandle, WindowsAPIHelper.GW_CHILD);
             
@@ -167,6 +199,12 @@ namespace ButtonRecognitionTool
                 try
                 {
                     string className = WindowsAPIHelper.GetClassName(childHandle);
+                    
+                    // For debug mode, collect all control class names
+                    if (allControls != null && !string.IsNullOrEmpty(className))
+                    {
+                        allControls.Add(className);
+                    }
                     
                     if (IsButtonClass(className))
                     {
@@ -178,7 +216,7 @@ namespace ButtonRecognitionTool
                     }
 
                     // Recursively search child windows
-                    EnumerateChildWindows(childHandle, buttons);
+                    EnumerateChildWindows(childHandle, buttons, allControls);
                 }
                 catch (Exception ex)
                 {

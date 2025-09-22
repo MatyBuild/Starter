@@ -27,27 +27,27 @@ namespace ButtonRecognitionTool
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IAccessible
         {
-            void accDoDefaultAction([In, MarshalAs(UnmanagedType.Variant)] object varChild);
+            void accDoDefaultAction([In] object varChild);
             object accHitTest(int xLeft, int yTop);
-            void accLocation(out int pxLeft, out int pyTop, out int pcxWidth, out int pcyHeight, [In, MarshalAs(UnmanagedType.Variant)] object varChild);
-            object accNavigate(int navDir, [In, MarshalAs(UnmanagedType.Variant)] object varStart);
-            void accSelect(int flagsSelect, [In, MarshalAs(UnmanagedType.Variant)] object varChild);
-            object get_accChild([In, MarshalAs(UnmanagedType.Variant)] object varChild);
+            void accLocation(out int pxLeft, out int pyTop, out int pcxWidth, out int pcyHeight, [In] object varChild);
+            object accNavigate(int navDir, [In] object varStart);
+            void accSelect(int flagsSelect, [In] object varChild);
+            object get_accChild([In] object varChild);
             int get_accChildCount();
-            string get_accDefaultAction([In, MarshalAs(UnmanagedType.Variant)] object varChild);
-            string get_accDescription([In, MarshalAs(UnmanagedType.Variant)] object varChild);
+            string get_accDefaultAction([In] object varChild);
+            string get_accDescription([In] object varChild);
             object get_accFocus();
-            string get_accHelp([In, MarshalAs(UnmanagedType.Variant)] object varChild);
-            int get_accHelpTopic(out string pszHelpFile, [In, MarshalAs(UnmanagedType.Variant)] object varChild);
-            string get_accKeyboardShortcut([In, MarshalAs(UnmanagedType.Variant)] object varChild);
-            string get_accName([In, MarshalAs(UnmanagedType.Variant)] object varChild);
+            string get_accHelp([In] object varChild);
+            int get_accHelpTopic(out string pszHelpFile, [In] object varChild);
+            string get_accKeyboardShortcut([In] object varChild);
+            string get_accName([In] object varChild);
             object get_accParent();
-            object get_accRole([In, MarshalAs(UnmanagedType.Variant)] object varChild);
+            object get_accRole([In] object varChild);
             object get_accSelection();
-            object get_accState([In, MarshalAs(UnmanagedType.Variant)] object varChild);
-            string get_accValue([In, MarshalAs(UnmanagedType.Variant)] object varChild);
-            void set_accName([In, MarshalAs(UnmanagedType.Variant)] object varChild, string szName);
-            void set_accValue([In, MarshalAs(UnmanagedType.Variant)] object varChild, string pszValue);
+            object get_accState([In] object varChild);
+            string get_accValue([In] object varChild);
+            void set_accName([In] object varChild, string szName);
+            void set_accValue([In] object varChild, string pszValue);
         }
 
         private const uint OBJID_WINDOW = 0x00000000;

@@ -68,7 +68,8 @@ $possibleUiAutomationPaths = @(
 
 $requiredReferences = @(
     "System.dll",
-    "System.Core.dll"
+    "System.Core.dll",
+    "System.Web.Extensions.dll"
 )
 
 $uiAutomationReferences = @(

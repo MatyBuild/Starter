@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 #if !NO_UI_AUTOMATION
 using System.Windows.Automation;
 #endif
-using System.Text.Json;
+using System.Web.Script.Serialization;
 
 namespace StarterLauncher
 {
@@ -202,10 +202,8 @@ namespace StarterLauncher
                 }
 
                 string jsonContent = File.ReadAllText(configPath);
-                return JsonSerializer.Deserialize<LauncherConfig>(jsonContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
+                JavaScriptSerializer serializer = new JavaScriptSerializer();
+                return serializer.Deserialize<LauncherConfig>(jsonContent);
             }
             catch (Exception ex)
             {
@@ -821,37 +819,63 @@ namespace StarterLauncher
     // Konfigurační třídy
     public class LauncherConfig
     {
-        public AppConfig[] Apps { get; set; }
-        public ConditionalConfig Conditional { get; set; }
+        public AppConfig[] apps { get; set; }
+        public ConditionalConfig conditional { get; set; }
+        
+        // Vlastnosti s PascalCase pro kompatibilitu
+        public AppConfig[] Apps { get { return apps; } set { apps = value; } }
+        public ConditionalConfig Conditional { get { return conditional; } set { conditional = value; } }
     }
 
     public class AppConfig
     {
-        public string Path { get; set; }
-        public string WindowTitle { get; set; }
-        public ClickConfig Click { get; set; }
-        public FallbackClickConfig FallbackClick { get; set; }
+        public string path { get; set; }
+        public string windowTitle { get; set; }
+        public ClickConfig click { get; set; }
+        public FallbackClickConfig fallbackClick { get; set; }
+        
+        // Vlastnosti s PascalCase pro kompatibilitu
+        public string Path { get { return path; } set { path = value; } }
+        public string WindowTitle { get { return windowTitle; } set { windowTitle = value; } }
+        public ClickConfig Click { get { return click; } set { click = value; } }
+        public FallbackClickConfig FallbackClick { get { return fallbackClick; } set { fallbackClick = value; } }
     }
 
     public class ConditionalConfig
     {
-        public AppConfig Online { get; set; }
-        public AppConfig Offline { get; set; }
-        public string[] PingHosts { get; set; }
-        public int PingTimeoutMs { get; set; }
-        public bool StartAfterAllBaseApps { get; set; }
+        public AppConfig online { get; set; }
+        public AppConfig offline { get; set; }
+        public string[] pingHosts { get; set; }
+        public int pingTimeoutMs { get; set; }
+        public bool startAfterAllBaseApps { get; set; }
+        
+        // Vlastnosti s PascalCase pro kompatibilitu
+        public AppConfig Online { get { return online; } set { online = value; } }
+        public AppConfig Offline { get { return offline; } set { offline = value; } }
+        public string[] PingHosts { get { return pingHosts; } set { pingHosts = value; } }
+        public int PingTimeoutMs { get { return pingTimeoutMs; } set { pingTimeoutMs = value; } }
+        public bool StartAfterAllBaseApps { get { return startAfterAllBaseApps; } set { startAfterAllBaseApps = value; } }
     }
 
     public class ClickConfig
     {
-        public string Type { get; set; }
-        public string ButtonName { get; set; }
-        public string AutomationId { get; set; }
+        public string type { get; set; }
+        public string buttonName { get; set; }
+        public string automationId { get; set; }
+        
+        // Vlastnosti s PascalCase pro kompatibilitu
+        public string Type { get { return type; } set { type = value; } }
+        public string ButtonName { get { return buttonName; } set { buttonName = value; } }
+        public string AutomationId { get { return automationId; } set { automationId = value; } }
     }
 
     public class FallbackClickConfig
     {
-        public int X { get; set; }
-        public int Y { get; set; }
+        public int x { get; set; }
+        public int y { get; set; }
+        
+        // Vlastnosti s PascalCase pro kompatibilitu
+        public int X { get { return x; } set { x = value; } }
+        public int Y { get { return y; } set { y = value; } }
     }
 }

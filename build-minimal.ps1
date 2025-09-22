@@ -63,6 +63,7 @@ $compileArgs = @(
     "/optimize+"
     "/warn:0"
     "/define:NO_UI_AUTOMATION"
+    "/reference:System.Web.Extensions.dll"
     "`"$SourceFile`""
 )
 

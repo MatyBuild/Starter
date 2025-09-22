@@ -160,22 +160,53 @@ namespace ButtonRecognitionTool
 
             appInfo.Buttons.Clear();
             Console.WriteLine($"Discovering buttons in {appInfo.WindowTitle}...");
+            
+            if (debugMode)
+            {
+                Console.WriteLine($"Main window handle: {appInfo.MainWindowHandle}");
+                Console.WriteLine($"Main window class: {WindowsAPIHelper.GetClassName(appInfo.MainWindowHandle)}");
+                Console.WriteLine($"Main window visible: {WindowsAPIHelper.IsWindowVisible(appInfo.MainWindowHandle)}");
+            }
 
             try
             {
                 List<string> allControls = new List<string>();
-                EnumerateChildWindows(appInfo.MainWindowHandle, appInfo.Buttons, debugMode ? allControls : null);
+                List<IntPtr> allHandles = new List<IntPtr>();
+                
+                // First try to find direct child windows
+                EnumerateChildWindows(appInfo.MainWindowHandle, appInfo.Buttons, debugMode ? allControls : null, debugMode ? allHandles : null);
+                
+                // If no child windows found, try alternative methods
+                if (allControls.Count == 0 && debugMode)
+                {
+                    Console.WriteLine("No direct child windows found. Trying alternative enumeration...");
+                    EnumerateWindowsAlternative(appInfo.MainWindowHandle, allControls, allHandles);
+                }
                 
                 Console.WriteLine($"Found {appInfo.Buttons.Count} buttons");
 
-                if (debugMode && allControls.Count > 0)
+                if (debugMode)
                 {
-                    Console.WriteLine($"\n=== DEBUG: All found controls ({allControls.Count}) ===\n");
-                    var uniqueClasses = allControls.Distinct().OrderBy(c => c);
-                    foreach (var className in uniqueClasses)
+                    Console.WriteLine($"Total controls examined: {allControls.Count}");
+                    Console.WriteLine($"Total window handles: {allHandles.Count}");
+                    
+                    if (allControls.Count > 0)
                     {
-                        int count = allControls.Count(c => c == className);
-                        Console.WriteLine($"  {className} ({count})");
+                        Console.WriteLine($"\n=== DEBUG: All found controls ({allControls.Count}) ===");
+                        var uniqueClasses = allControls.Distinct().OrderBy(c => c);
+                        foreach (var className in uniqueClasses)
+                        {
+                            int count = allControls.Count(c => c == className);
+                            Console.WriteLine($"  {className} ({count})");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("\n=== DEBUG: No child controls found ===");
+                        Console.WriteLine("This application might be using:");
+                        Console.WriteLine("- Modern UI framework (WPF, UWP, WinUI)");
+                        Console.WriteLine("- Custom rendering (DirectX, OpenGL)");
+                        Console.WriteLine("- Web-based UI (Electron, CEF)");
                     }
                     Console.WriteLine();
                 }
@@ -191,7 +222,7 @@ namespace ButtonRecognitionTool
             }
         }
 
-        private void EnumerateChildWindows(IntPtr parentHandle, List<ButtonInfo> buttons, List<string> allControls = null)
+        private void EnumerateChildWindows(IntPtr parentHandle, List<ButtonInfo> buttons, List<string> allControls = null, List<IntPtr> allHandles = null)
         {
             IntPtr childHandle = WindowsAPIHelper.GetWindow(parentHandle, WindowsAPIHelper.GW_CHILD);
             
@@ -201,10 +232,14 @@ namespace ButtonRecognitionTool
                 {
                     string className = WindowsAPIHelper.GetClassName(childHandle);
                     
-                    // For debug mode, collect all control class names
+                    // For debug mode, collect all control class names and handles
                     if (allControls != null && !string.IsNullOrEmpty(className))
                     {
                         allControls.Add(className);
+                    }
+                    if (allHandles != null)
+                    {
+                        allHandles.Add(childHandle);
                     }
                     
                     if (IsButtonClass(className))
@@ -217,7 +252,7 @@ namespace ButtonRecognitionTool
                     }
 
                     // Recursively search child windows
-                    EnumerateChildWindows(childHandle, buttons, allControls);
+                    EnumerateChildWindows(childHandle, buttons, allControls, allHandles);
                 }
                 catch (Exception ex)
                 {
@@ -346,5 +381,38 @@ namespace ButtonRecognitionTool
                 }
             }
         }
+        
+        private void EnumerateWindowsAlternative(IntPtr parentHandle, List<string> allControls, List<IntPtr> allHandles)
+        {
+            try
+            {
+                // Try EnumChildWindows API as alternative
+                EnumChildWindowsProc childProc = (hWnd, lParam) =>
+                {
+                    try
+                    {
+                        string className = WindowsAPIHelper.GetClassName(hWnd);
+                        if (!string.IsNullOrEmpty(className))
+                        {
+                            allControls.Add(className);
+                            allHandles.Add(hWnd);
+                        }
+                    }
+                    catch { }
+                    return true; // Continue enumeration
+                };
+                
+                EnumChildWindows(parentHandle, childProc, IntPtr.Zero);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Alternative enumeration failed: {ex.Message}");
+            }
+        }
+        
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        public static extern bool EnumChildWindows(IntPtr hWndParent, EnumChildWindowsProc lpEnumFunc, IntPtr lParam);
+        
+        public delegate bool EnumChildWindowsProc(IntPtr hWnd, IntPtr lParam);
     }
 }

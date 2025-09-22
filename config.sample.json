@@ -6,8 +6,8 @@
       "click": null
     },
     {
-      "path": "C:\\Desktop\\App2.exe",
-      "windowTitle": "App2 - Hlavní okno",
+      "path": "C:\\Desktop\\SimHub.exe",
+      "windowTitle": "SimHub",
       "click": {
         "type": "uia",
         "buttonName": "Activate",
@@ -27,7 +27,7 @@
   "conditional": {
     "online": {
       "path": "C:\\Desktop\\Drivetech Launcher.exe",
-      "windowTitle": "Drivetech Launcher - Hlavní okno",
+      "windowTitle": "Drivetech Launcher",
       "click": {
         "type": "uia",
         "buttonName": "Connect",
@@ -40,7 +40,7 @@
     },
     "offline": {
       "path": "C:\\Desktop\\Drivetech Offline.exe",
-      "windowTitle": "Drivetech Offline - Hlavní okno",
+      "windowTitle": "Drivetech Offline",
       "click": {
         "type": "uia",
         "buttonName": "Offline Mode",

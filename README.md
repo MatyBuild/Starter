@@ -95,8 +95,8 @@ Launcher používá JSON konfigurační soubor. Viz `config.sample.json` pro př
       "click": null
     },
     {
-      "path": "C:\\Desktop\\App2.exe", 
-      "windowTitle": "App2 - Hlavní okno",
+      "path": "C:\\Desktop\\SimHub.exe", 
+      "windowTitle": "SimHub",
       "click": {
         "type": "uia",
         "buttonName": "Activate",
@@ -158,7 +158,9 @@ Launcher používá JSON konfigurační soubor. Viz `config.sample.json` pro př
 - **Chování**: Spustí se, čeká na aktualizační dialog a zavře ho ("Nekontrolovat"), pak se minimalizuje
 - **Poznámka**: Může chybět - launcher pokračuje dále
 
-#### App2
+#### App2 - SimHub
+- **Název**: SimHub
+- **Fallback**: Hledá na ploše podle názvů: "SimHub", "simhub", "SIMHUB"
 - **Chování**: Spustí se, čeká na hlavní okno, klikne na "Activate", minimalizuje se
 
 #### App3 - AiTrack
@@ -167,9 +169,9 @@ Launcher používá JSON konfigurační soubor. Viz `config.sample.json` pro př
 - **Chování**: Spustí se, čeká na hlavní okno, klikne na "Start tracking", zůstává otevřené
 
 #### App4/App5 (podmíněné)
-- **App4 (Online)**: Drivetech Launcher, Drivetech Online
-- **App5 (Offline)**: Drivetech Offline, Drivetech
-- **Hledání**: Také se hledají na ploše podle variant názvů
+- **App4 (Online)**: Drivetech Launcher (může být i "Drivetech Louncher", "Drivetech Online")
+- **App5 (Offline)**: Drivetech Offline (může být i jen "Drivetech")
+- **Hledání**: Hledají se na ploše ve všech variantách velikosti písmen
 
 ## Sekvence spouštění
 
@@ -224,7 +226,7 @@ Launcher používá JSON konfigurační soubor. Viz `config.sample.json` pro př
 
 ### Aplikace se nenašla
 - Zkontrolujte cestu v konfiguraci
-- Pro App1, App3, App4, App5 se hledá i na ploše podle definovaných názvů
+- Pro App1, App2, App3, App4, App5 se hledají i na ploše podle definovaných názvů (bez ohledu na velikost písmen)
 - Zkontrolujte, zda soubory existují a jsou spustitelné
 
 ### UI Automation selhala

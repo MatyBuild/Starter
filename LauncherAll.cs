@@ -290,13 +290,15 @@ namespace StarterLauncher
             switch (appNumber)
             {
                 case 1:
-                    return new[] { "Sim Racing Studio", "SMS", "Motion System" };
+                    return new[] { "Sim Racing Studio", "SMS", "Motion System", "sim racing studio", "sms", "motion system" };
+                case 2:
+                    return new[] { "SimHub", "simhub", "SIMHUB" };
                 case 3:
-                    return new[] { "AiTrack", "AI Track", "aitrack" };
+                    return new[] { "AiTrack", "AI Track", "aitrack", "AITRACK", "ai track" };
                 case 4:
-                    return new[] { "Drivetech Launcher", "Drivetech Louncher", "Drivetech Online" };
+                    return new[] { "Drivetech Launcher", "Drivetech Louncher", "Drivetech Online", "drivetech launcher", "drivetech louncher", "drivetech online", "DRIVETECH LAUNCHER", "DRIVETECH LOUNCHER", "DRIVETECH ONLINE" };
                 case 5:
-                    return new[] { "Drivetech Offline", "Drivetech" };
+                    return new[] { "Drivetech Offline", "Drivetech", "drivetech offline", "drivetech", "DRIVETECH OFFLINE", "DRIVETECH" };
                 default:
                     return new string[0];
             }

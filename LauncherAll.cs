@@ -257,6 +257,11 @@ namespace StarterLauncher
                         if (process == null)
                         {
                             LogError(string.Format("Nepodařilo se spustit: {0}", appPath));
+                            if (i == 0) // App1 může selhat
+                            {
+                                LogMessage("App1 se nepodařilo spustit - pokračujem dále");
+                                continue;
+                            }
                             return false;
                         }
 
@@ -266,7 +271,14 @@ namespace StarterLauncher
                         if (!HandleAppSpecificBehavior(i + 1, app))
                         {
                             LogError(string.Format("Chyba při zpracování App{0}", i + 1));
-                            return false;
+                            if (i == 0) // App1 může selhat
+                            {
+                                LogMessage("App1 selhalo - pokračujem dále");
+                            }
+                            else
+                            {
+                                return false;
+                            }
                         }
                     }
                     else
@@ -277,8 +289,12 @@ namespace StarterLauncher
                 catch (Exception ex)
                 {
                     LogError(string.Format("Chyba při spouštění App{0}: {1}", i + 1, ex.Message));
-                    if (i != 0) // App1 může chybět
-                        return false;
+                    if (i == 0) // App1 může selhat
+                    {
+                        LogMessage("App1 chyba - pokračujem dále");
+                        continue;
+                    }
+                    return false;
                 }
             }
 
@@ -425,7 +441,8 @@ namespace StarterLauncher
                 if (string.IsNullOrEmpty(app.windowTitle))
                     return true;
 
-                AutomationElement window = WaitForWindow(app.windowTitle, timeoutWindowSeconds);
+                // SimHub může trvat až 30 sekund na spuštění
+                AutomationElement window = WaitForWindow(app.windowTitle, 30);
                 if (window == null)
                 {
                     LogError(string.Format("App2 okno nenalezeno: {0}", app.windowTitle));

@@ -1,0 +1,54 @@
+{
+  "apps": [
+    {
+      "path": "C:\\Program Files\\SimRacingStudio 2.0\\simracingstudio.exe",
+      "windowTitle": "Sim Racing Studio",
+      "click": null
+    },
+    {
+      "path": "C:\\Desktop\\App2.exe",
+      "windowTitle": "App2 - Hlavní okno",
+      "click": {
+        "type": "uia",
+        "buttonName": "Activate",
+        "automationId": null
+      }
+    },
+    {
+      "path": "C:\\Desktop\\AiTrack.exe",
+      "windowTitle": "AiTrack",
+      "click": {
+        "type": "uia",
+        "buttonName": "Start tracking",
+        "automationId": null
+      }
+    }
+  ],
+  "conditional": {
+    "online": {
+      "path": "C:\\Desktop\\Drivetech Launcher.exe",
+      "windowTitle": "Drivetech Launcher - Hlavní okno",
+      "click": {
+        "type": "uia",
+        "buttonName": "Connect",
+        "automationId": null
+      },
+      "fallbackClick": {
+        "x": 200,
+        "y": 120
+      }
+    },
+    "offline": {
+      "path": "C:\\Desktop\\Drivetech Offline.exe",
+      "windowTitle": "Drivetech Offline - Hlavní okno",
+      "click": {
+        "type": "uia",
+        "buttonName": "Offline Mode",
+        "automationId": null
+      }
+    },
+    "pingHosts": ["1.1.1.1", "9.9.9.9"],
+    "pingTimeoutMs": 1500,
+    "startAfterAllBaseApps": true
+  }
+}

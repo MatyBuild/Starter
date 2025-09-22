@@ -401,8 +401,8 @@ namespace StarterLauncher
                     }
                 }
 
-                // Najdi hlavní okno aplikace a minimalizuj
-                AutomationElement mainWindow = WaitForWindow("Sim Racing Studio", 10);
+                // Najdi hlavní okno aplikace - hledej okno začínající na "Sim Racing Studio"
+                AutomationElement mainWindow = WaitForWindowStartingWith("Sim Racing Studio", 10);
                 if (mainWindow != null)
                 {
                     MinimizeWindow(mainWindow);
@@ -673,6 +673,51 @@ namespace StarterLauncher
             }
 
             LogMessage(string.Format("Okno nenalezeno po {0}s: {1}", timeoutSeconds, windowTitle));
+            return null;
+#endif
+        }
+
+        private static AutomationElement WaitForWindowStartingWith(string windowTitlePrefix, int timeoutSeconds)
+        {
+#if NO_UI_AUTOMATION
+            LogMessage(string.Format("UI Automation není dostupné - přeskakuji hledání okna začínajícího na: {0}", windowTitlePrefix));
+            return null;
+#else
+            DateTime timeout = DateTime.Now.AddSeconds(timeoutSeconds);
+            
+            while (DateTime.Now < timeout)
+            {
+                try
+                {
+                    AutomationElement desktop = AutomationElement.RootElement;
+                    AutomationElementCollection windows = desktop.FindAll(TreeScope.Children, Condition.TrueCondition);
+                    
+                    foreach (AutomationElement window in windows)
+                    {
+                        try
+                        {
+                            string windowName = window.Current.Name;
+                            if (!string.IsNullOrEmpty(windowName) && windowName.StartsWith(windowTitlePrefix))
+                            {
+                                LogMessage(string.Format("Okno nalezeno začínající na '{0}': {1}", windowTitlePrefix, windowName));
+                                return window;
+                            }
+                        }
+                        catch
+                        {
+                            // Pokračuj, některé elementy nemají přístupné vlastnosti
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogMessage(string.Format("Chyba při hledání okna začínajícího na {0}: {1}", windowTitlePrefix, ex.Message));
+                }
+
+                Thread.Sleep(1000);
+            }
+
+            LogMessage(string.Format("Okno začínající na '{0}' nenalezeno po {1}s", windowTitlePrefix, timeoutSeconds));
             return null;
 #endif
         }

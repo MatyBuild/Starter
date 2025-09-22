@@ -180,7 +180,14 @@ namespace ButtonRecognitionTool
                 if (allControls.Count == 0 && debugMode)
                 {
                     Console.WriteLine("No direct child windows found. Trying alternative enumeration...");
-                    EnumerateWindowsAlternative(appInfo.MainWindowHandle, allControls, allHandles);
+                    EnumerateProcessWindows(parentHandle, allControls, allHandles);
+                }
+                
+                // If still no buttons found, try UI Automation for modern frameworks
+                if (appInfo.Buttons.Count == 0)
+                {
+                    Console.WriteLine("Trying UI Automation for modern UI frameworks...");
+                    TryUIAutomation(appInfo, debugMode);
                 }
                 
                 Console.WriteLine($"Found {appInfo.Buttons.Count} buttons");
@@ -505,5 +512,65 @@ namespace ButtonRecognitionTool
         
         public delegate bool EnumChildWindowsProc(IntPtr hWnd, IntPtr lParam);
         public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+        
+        private void TryUIAutomation(ApplicationInfo appInfo, bool debugMode)
+        {
+            try
+            {
+                // Try UI Automation first
+                var uiAutomation = new UIAutomationHelper();
+                if (uiAutomation.IsUIAutomationAvailable())
+                {
+                    if (debugMode)
+                    {
+                        Console.WriteLine("UI Automation is available, searching for buttons...");
+                    }
+                    
+                    var automationButtons = uiAutomation.FindButtonsUsingUIAutomation(appInfo.MainWindowHandle);
+                    appInfo.Buttons.AddRange(automationButtons);
+                    
+                    if (debugMode)
+                    {
+                        Console.WriteLine($"UI Automation found {automationButtons.Count} buttons");
+                    }
+                }
+                else
+                {
+                    if (debugMode)
+                    {
+                        Console.WriteLine("UI Automation is not available on this system");
+                    }
+                }
+                
+                // Also try Accessibility API as fallback
+                if (debugMode)
+                {
+                    Console.WriteLine("Also trying Accessibility API...");
+                }
+                
+                var accessibilityHelper = new AccessibilityHelper();
+                var accessibilityButtons = accessibilityHelper.FindButtonsUsingAccessibility(appInfo.MainWindowHandle, debugMode);
+                
+                if (accessibilityButtons.Count > 0)
+                {
+                    appInfo.Buttons.AddRange(accessibilityButtons);
+                    if (debugMode)
+                    {
+                        Console.WriteLine($"Accessibility API found {accessibilityButtons.Count} additional buttons");
+                    }
+                }
+                else if (debugMode)
+                {
+                    Console.WriteLine("Accessibility API found no buttons");
+                }
+            }
+            catch (Exception ex)
+            {
+                if (debugMode)
+                {
+                    Console.WriteLine($"Modern UI framework detection failed: {ex.Message}");
+                }
+            }
+        }
     }
 }

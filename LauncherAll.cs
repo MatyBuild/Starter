@@ -7,7 +7,9 @@ using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+#if !NO_UI_AUTOMATION
 using System.Windows.Automation;
+#endif
 using System.Text.Json;
 
 namespace StarterLauncher
@@ -634,6 +636,10 @@ namespace StarterLauncher
 
         private static AutomationElement WaitForWindow(string windowTitle, int timeoutSeconds)
         {
+#if NO_UI_AUTOMATION
+            LogMessage($"UI Automation není dostupné - přeskakuji hledání okna: {windowTitle}");
+            return null;
+#else
             DateTime timeout = DateTime.Now.AddSeconds(timeoutSeconds);
             
             while (DateTime.Now < timeout)
@@ -660,10 +666,15 @@ namespace StarterLauncher
 
             LogMessage($"Okno nenalezeno po {timeoutSeconds}s: {windowTitle}");
             return null;
+#endif
         }
 
         private static bool ClickButtonByName(AutomationElement window, string buttonName)
         {
+#if NO_UI_AUTOMATION
+            LogMessage($"UI Automation není dostupné - nelze kliknout na tlačítko: {buttonName}");
+            return false;
+#else
             try
             {
                 PropertyCondition buttonCondition = new PropertyCondition(AutomationElement.NameProperty, buttonName);
@@ -689,10 +700,15 @@ namespace StarterLauncher
                 LogMessage($"Chyba při kliku na tlačítko {buttonName}: {ex.Message}");
                 return false;
             }
+#endif
         }
 
         private static bool ClickButtonByAutomationId(AutomationElement window, string automationId)
         {
+#if NO_UI_AUTOMATION
+            LogMessage($"UI Automation není dostupné - nelze kliknout na tlačítko (AutomationId): {automationId}");
+            return false;
+#else
             try
             {
                 PropertyCondition buttonCondition = new PropertyCondition(AutomationElement.AutomationIdProperty, automationId);
@@ -718,10 +734,15 @@ namespace StarterLauncher
                 LogMessage($"Chyba při kliku na tlačítko (AutomationId) {automationId}: {ex.Message}");
                 return false;
             }
+#endif
         }
 
         private static bool ClickRelative(AutomationElement window, int x, int y)
         {
+#if NO_UI_AUTOMATION
+            LogMessage($"UI Automation není dostupné - nelze provést relativní klik na {x}, {y}");
+            return false;
+#else
             try
             {
                 IntPtr hwnd = new IntPtr(window.Current.NativeWindowHandle);
@@ -756,10 +777,14 @@ namespace StarterLauncher
                 LogMessage($"Chyba při relativním kliku: {ex.Message}");
                 return false;
             }
+#endif
         }
 
         private static void MinimizeWindow(AutomationElement window)
         {
+#if NO_UI_AUTOMATION
+            LogMessage("UI Automation není dostupné - nelze minimalizovat okno");
+#else
             try
             {
                 IntPtr hwnd = new IntPtr(window.Current.NativeWindowHandle);
@@ -769,10 +794,14 @@ namespace StarterLauncher
             {
                 LogMessage($"Chyba při minimalizaci okna: {ex.Message}");
             }
+#endif
         }
 
         private static void CloseWindow(AutomationElement window)
         {
+#if NO_UI_AUTOMATION
+            LogMessage("UI Automation není dostupné - nelze zavřít okno");
+#else
             try
             {
                 if (window.TryGetCurrentPattern(WindowPattern.Pattern, out object pattern))
@@ -785,6 +814,7 @@ namespace StarterLauncher
             {
                 LogMessage($"Chyba při zavírání okna: {ex.Message}");
             }
+#endif
         }
     }
 

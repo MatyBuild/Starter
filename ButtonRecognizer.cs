@@ -202,6 +202,9 @@ namespace ButtonRecognitionTool
         {
             try
             {
+                WindowsAPIHelper.RECT bounds;
+                WindowsAPIHelper.GetWindowRect(handle, out bounds);
+                
                 ButtonInfo button = new ButtonInfo
                 {
                     Handle = handle,
@@ -209,10 +212,9 @@ namespace ButtonRecognitionTool
                     ClassName = className,
                     IsEnabled = WindowsAPIHelper.IsWindowEnabled(handle),
                     IsVisible = WindowsAPIHelper.IsWindowVisible(handle),
-                    ControlId = WindowsAPIHelper.GetDlgCtrlID(handle)
+                    ControlId = WindowsAPIHelper.GetDlgCtrlID(handle),
+                    Bounds = bounds
                 };
-
-                WindowsAPIHelper.GetWindowRect(handle, out button.Bounds);
                 return button;
             }
             catch (Exception ex)

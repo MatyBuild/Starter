@@ -14,7 +14,6 @@ using System.Web.Script.Serialization;
 
 namespace StarterLauncher
 {
-    [STAThread]
     class Program
     {
         private static string configPath = "";
@@ -54,6 +53,7 @@ namespace StarterLauncher
         private const int SW_MINIMIZE = 6;
         private const int SW_RESTORE = 9;
 
+        [STAThread]
         static int Main(string[] args)
         {
             try
@@ -132,9 +132,13 @@ namespace StarterLauncher
                         dryRun = true;
                         break;
                     case "--timeoutwindow":
-                        if (i + 1 < args.Length && int.TryParse(args[++i], out int timeout))
+                        if (i + 1 < args.Length)
                         {
-                            timeoutWindowSeconds = timeout;
+                            int timeout;
+                            if (int.TryParse(args[++i], out timeout))
+                            {
+                                timeoutWindowSeconds = timeout;
+                            }
                         }
                         break;
                     case "--help":
@@ -479,8 +483,12 @@ namespace StarterLauncher
 
         private static bool CheckConnectivity()
         {
-            string[] hosts = config.Conditional?.PingHosts ?? new[] { "1.1.1.1", "9.9.9.9" };
-            int timeout = config.Conditional?.PingTimeoutMs ?? 1500;
+            string[] hosts = (config.Conditional != null && config.Conditional.PingHosts != null) 
+                ? config.Conditional.PingHosts 
+                : new[] { "1.1.1.1", "9.9.9.9" };
+            int timeout = (config.Conditional != null) 
+                ? config.Conditional.PingTimeoutMs 
+                : 1500;
 
             foreach (string host in hosts)
             {
@@ -594,8 +602,8 @@ namespace StarterLauncher
 
                 if (app.Click.Type.ToLower() == "uia")
                 {
-                    string buttonName = app.Click.ButtonName ?? "";
-                    string automationId = app.Click.AutomationId ?? "";
+                    string buttonName = (app.Click.ButtonName != null) ? app.Click.ButtonName : "";
+                    string automationId = (app.Click.AutomationId != null) ? app.Click.AutomationId : "";
 
                     if (!string.IsNullOrEmpty(buttonName))
                     {
@@ -682,7 +690,8 @@ namespace StarterLauncher
                 {
                     LogMessage(string.Format("Tlačítko nalezeno: {0}", buttonName));
                     
-                    if (button.TryGetCurrentPattern(InvokePattern.Pattern, out object pattern))
+                    object pattern;
+                    if (button.TryGetCurrentPattern(InvokePattern.Pattern, out pattern))
                     {
                         ((InvokePattern)pattern).Invoke();
                         LogMessage(string.Format("Kliknuto na tlačítko: {0}", buttonName));
@@ -716,7 +725,8 @@ namespace StarterLauncher
                 {
                     LogMessage(string.Format("Tlačítko nalezeno (AutomationId): {0}", automationId));
                     
-                    if (button.TryGetCurrentPattern(InvokePattern.Pattern, out object pattern))
+                    object pattern;
+                    if (button.TryGetCurrentPattern(InvokePattern.Pattern, out pattern))
                     {
                         ((InvokePattern)pattern).Invoke();
                         LogMessage(string.Format("Kliknuto na tlačítko (AutomationId): {0}", automationId));
@@ -802,7 +812,8 @@ namespace StarterLauncher
 #else
             try
             {
-                if (window.TryGetCurrentPattern(WindowPattern.Pattern, out object pattern))
+                object pattern;
+                if (window.TryGetCurrentPattern(WindowPattern.Pattern, out pattern))
                 {
                     ((WindowPattern)pattern).Close();
                     LogMessage("Okno zavřeno");

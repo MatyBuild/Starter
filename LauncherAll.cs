@@ -86,7 +86,7 @@ namespace StarterLauncher
                 // Krok 4: Kontrola konektivity
                 LogMessage("Kontrolujem konektivitu...");
                 bool isOnline = CheckConnectivity();
-                LogMessage($"Režim: {(isOnline ? "ONLINE" : "OFFLINE")}");
+                LogMessage(string.Format("Režim: {0}", (isOnline ? "ONLINE" : "OFFLINE")));
 
                 // Krok 5: Spuštění podmíněné aplikace
                 if (!StartConditionalApp(isOnline))
@@ -100,13 +100,13 @@ namespace StarterLauncher
             }
             catch (Exception ex)
             {
-                LogError($"Neočekávaná chyba: {ex.Message}");
-                LogError($"Stack trace: {ex.StackTrace}");
+                LogError(string.Format("Neočekávaná chyba: {0}", ex.Message));
+                LogError(string.Format("Stack trace: {0}", ex.StackTrace));
                 return 1;
             }
             finally
             {
-                logWriter?.Close();
+                if (logWriter != null) logWriter.Close();
             }
         }
 
@@ -170,25 +170,25 @@ namespace StarterLauncher
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Varování: Nepodařilo se otevřít log soubor: {ex.Message}");
+                    Console.WriteLine(string.Format("Varování: Nepodařilo se otevřít log soubor: {0}", ex.Message));
                 }
             }
         }
 
         private static void LogMessage(string message)
         {
-            string logLine = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}";
+            string logLine = string.Format("[{0:yyyy-MM-dd HH:mm:ss}] {1}", DateTime.Now, message);
             Console.WriteLine(logLine);
-            logWriter?.WriteLine(logLine);
-            logWriter?.Flush();
+            if (logWriter != null) logWriter.WriteLine(logLine);
+            if (logWriter != null) logWriter.Flush();
         }
 
         private static void LogError(string message)
         {
-            string logLine = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] CHYBA: {message}";
+            string logLine = string.Format("[{0:yyyy-MM-dd HH:mm:ss}] CHYBA: {1}", DateTime.Now, message);
             Console.WriteLine(logLine);
-            logWriter?.WriteLine(logLine);
-            logWriter?.Flush();
+            if (logWriter != null) logWriter.WriteLine(logLine);
+            if (logWriter != null) logWriter.Flush();
         }
 
         private static LauncherConfig LoadConfiguration()
@@ -197,7 +197,7 @@ namespace StarterLauncher
             {
                 if (!File.Exists(configPath))
                 {
-                    LogError($"Konfigurační soubor nenalezen: {configPath}");
+                    LogError(string.Format("Konfigurační soubor nenalezen: {0}", configPath));
                     return null;
                 }
 
@@ -209,7 +209,7 @@ namespace StarterLauncher
             }
             catch (Exception ex)
             {
-                LogError($"Chyba při načítání konfigurace: {ex.Message}");
+                LogError(string.Format("Chyba při načítání konfigurace: {0}", ex.Message));
                 return null;
             }
         }
@@ -225,7 +225,7 @@ namespace StarterLauncher
             for (int i = 0; i < config.Apps.Length; i++)
             {
                 var app = config.Apps[i];
-                LogMessage($"Spouštím App{i + 1}: {app.Path}");
+                LogMessage(string.Format("Spouštím App{0}: {1}", i + 1, app.Path));
 
                 try
                 {
@@ -240,7 +240,7 @@ namespace StarterLauncher
                             LogMessage("App1 není dostupná - pokračujem");
                             continue;
                         }
-                        LogError($"Aplikace nenalezena: {app.Path}");
+                        LogError(string.Format("Aplikace nenalezena: {0}", app.Path));
                         return false;
                     }
 
@@ -254,27 +254,27 @@ namespace StarterLauncher
 
                         if (process == null)
                         {
-                            LogError($"Nepodařilo se spustit: {appPath}");
+                            LogError(string.Format("Nepodařilo se spustit: {0}", appPath));
                             return false;
                         }
 
-                        LogMessage($"App{i + 1} spuštěna (PID: {process.Id})");
+                        LogMessage(string.Format("App{0} spuštěna (PID: {1})", i + 1, process.Id));
 
                         // Specifické chování podle aplikace
                         if (!HandleAppSpecificBehavior(i + 1, app))
                         {
-                            LogError($"Chyba při zpracování App{i + 1}");
+                            LogError(string.Format("Chyba při zpracování App{0}", i + 1));
                             return false;
                         }
                     }
                     else
                     {
-                        LogMessage($"[DRY-RUN] Spustil bych: {appPath}");
+                        LogMessage(string.Format("[DRY-RUN] Spustil bych: {0}", appPath));
                     }
                 }
                 catch (Exception ex)
                 {
-                    LogError($"Chyba při spouštění App{i + 1}: {ex.Message}");
+                    LogError(string.Format("Chyba při spouštění App{0}: {1}", i + 1, ex.Message));
                     if (i != 0) // App1 může chybět
                         return false;
                 }
@@ -318,7 +318,7 @@ namespace StarterLauncher
                         string path = Path.Combine(desktop, name + ext);
                         if (File.Exists(path))
                         {
-                            LogMessage($"Nalezena aplikace na ploše: {path}");
+                            LogMessage(string.Format("Nalezena aplikace na ploše: {0}", path));
                             return path;
                         }
 
@@ -326,7 +326,7 @@ namespace StarterLauncher
                         path = Path.Combine(desktop, name.ToLower() + ext);
                         if (File.Exists(path))
                         {
-                            LogMessage($"Nalezena aplikace na ploše: {path}");
+                            LogMessage(string.Format("Nalezena aplikace na ploše: {0}", path));
                             return path;
                         }
                     }
@@ -347,19 +347,19 @@ namespace StarterLauncher
                 {
                     try
                     {
-                        LogMessage($"Ukončuji běžící proces: {process.ProcessName} (PID: {process.Id})");
+                        LogMessage(string.Format("Ukončuji běžící proces: {0} (PID: {1})", process.ProcessName, process.Id));
                         process.Kill();
                         process.WaitForExit(5000);
                     }
                     catch (Exception ex)
                     {
-                        LogMessage($"Varování: Nepodařilo se ukončit proces {process.ProcessName}: {ex.Message}");
+                        LogMessage(string.Format("Varování: Nepodařilo se ukončit proces {0}: {1}", process.ProcessName, ex.Message));
                     }
                 }
             }
             catch (Exception ex)
             {
-                LogMessage($"Varování při ukončování procesů: {ex.Message}");
+                LogMessage(string.Format("Varování při ukončování procesů: {0}", ex.Message));
             }
         }
 
@@ -409,7 +409,7 @@ namespace StarterLauncher
             }
             catch (Exception ex)
             {
-                LogError($"Chyba při zpracování App1: {ex.Message}");
+                LogError(string.Format("Chyba při zpracování App1: {0}", ex.Message));
                 return true; // App1 může selhat
             }
         }
@@ -424,7 +424,7 @@ namespace StarterLauncher
                 AutomationElement window = WaitForWindow(app.WindowTitle, timeoutWindowSeconds);
                 if (window == null)
                 {
-                    LogError($"App2 okno nenalezeno: {app.WindowTitle}");
+                    LogError(string.Format("App2 okno nenalezeno: {0}", app.WindowTitle));
                     return false;
                 }
 
@@ -443,7 +443,7 @@ namespace StarterLauncher
             }
             catch (Exception ex)
             {
-                LogError($"Chyba při zpracování App2: {ex.Message}");
+                LogError(string.Format("Chyba při zpracování App2: {0}", ex.Message));
                 return false;
             }
         }
@@ -458,7 +458,7 @@ namespace StarterLauncher
                 AutomationElement window = WaitForWindow(app.WindowTitle, timeoutWindowSeconds);
                 if (window == null)
                 {
-                    LogError($"App3 okno nenalezeno: {app.WindowTitle}");
+                    LogError(string.Format("App3 okno nenalezeno: {0}", app.WindowTitle));
                     return false;
                 }
 
@@ -474,7 +474,7 @@ namespace StarterLauncher
             }
             catch (Exception ex)
             {
-                LogError($"Chyba při zpracování App3: {ex.Message}");
+                LogError(string.Format("Chyba při zpracování App3: {0}", ex.Message));
                 return false;
             }
         }
@@ -490,25 +490,25 @@ namespace StarterLauncher
                 {
                     if (dryRun)
                     {
-                        LogMessage($"[DRY-RUN] Pingoval bych: {host}");
+                        LogMessage(string.Format("[DRY-RUN] Pingoval bych: {0}", host));
                         continue;
                     }
 
                     using (Ping ping = new Ping())
                     {
                         PingReply reply = ping.Send(host, timeout);
-                        LogMessage($"Ping {host}: {reply.Status}");
+                        LogMessage(string.Format("Ping {0}: {1}", host, reply.Status));
 
                         if (reply.Status == IPStatus.Success)
                         {
-                            LogMessage($"Ping na {host} úspěšný - režim ONLINE");
+                            LogMessage(string.Format("Ping na {0} úspěšný - režim ONLINE", host));
                             return true;
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    LogMessage($"Ping {host} selhal: {ex.Message}");
+                    LogMessage(string.Format("Ping {0} selhal: {1}", host, ex.Message));
                 }
             }
 
@@ -527,13 +527,13 @@ namespace StarterLauncher
             AppConfig app = isOnline ? config.Conditional.Online : config.Conditional.Offline;
             if (app == null)
             {
-                LogMessage($"Žádná aplikace pro režim {(isOnline ? "ONLINE" : "OFFLINE")}");
+                LogMessage(string.Format("Žádná aplikace pro režim {0}", (isOnline ? "ONLINE" : "OFFLINE")));
                 return true;
             }
 
             try
             {
-                LogMessage($"Spouštím {(isOnline ? "ONLINE" : "OFFLINE")} aplikace: {app.Path}");
+                LogMessage(string.Format("Spouštím {0} aplikace: {1}", (isOnline ? "ONLINE" : "OFFLINE"), app.Path));
 
                 // Ukonči případné běžící procesy
                 TerminateExistingProcesses(app.Path);
@@ -541,7 +541,7 @@ namespace StarterLauncher
                 string appPath = FindApplicationPath(app.Path, GetAppSearchNames(isOnline ? 4 : 5));
                 if (string.IsNullOrEmpty(appPath))
                 {
-                    LogError($"Podmíněná aplikace nenalezena: {app.Path}");
+                    LogError(string.Format("Podmíněná aplikace nenalezena: {0}", app.Path));
                     return false;
                 }
 
@@ -555,11 +555,11 @@ namespace StarterLauncher
 
                     if (process == null)
                     {
-                        LogError($"Nepodařilo se spustit: {appPath}");
+                        LogError(string.Format("Nepodařilo se spustit: {0}", appPath));
                         return false;
                     }
 
-                    LogMessage($"Podmíněná aplikace spuštěna (PID: {process.Id})");
+                    LogMessage(string.Format("Podmíněná aplikace spuštěna (PID: {0})", process.Id));
 
                     // Pokud je definován klik, proveď ho
                     if (app.Click != null && !string.IsNullOrEmpty(app.WindowTitle))
@@ -569,14 +569,14 @@ namespace StarterLauncher
                 }
                 else
                 {
-                    LogMessage($"[DRY-RUN] Spustil bych: {appPath}");
+                    LogMessage(string.Format("[DRY-RUN] Spustil bych: {0}", appPath));
                 }
 
                 return true;
             }
             catch (Exception ex)
             {
-                LogError($"Chyba při spouštění podmíněné aplikace: {ex.Message}");
+                LogError(string.Format("Chyba při spouštění podmíněné aplikace: {0}", ex.Message));
                 return false;
             }
         }
@@ -588,7 +588,7 @@ namespace StarterLauncher
                 AutomationElement window = WaitForWindow(app.WindowTitle, timeoutWindowSeconds);
                 if (window == null)
                 {
-                    LogError($"Okno podmíněné aplikace nenalezeno: {app.WindowTitle}");
+                    LogError(string.Format("Okno podmíněné aplikace nenalezeno: {0}", app.WindowTitle));
                     return false;
                 }
 
@@ -629,7 +629,7 @@ namespace StarterLauncher
             }
             catch (Exception ex)
             {
-                LogError($"Chyba při kliku v podmíněné aplikaci: {ex.Message}");
+                LogError(string.Format("Chyba při kliku v podmíněné aplikaci: {0}", ex.Message));
                 return true; // Aplikace je spuštěna, jen klik selhal
             }
         }
@@ -637,7 +637,7 @@ namespace StarterLauncher
         private static AutomationElement WaitForWindow(string windowTitle, int timeoutSeconds)
         {
 #if NO_UI_AUTOMATION
-            LogMessage($"UI Automation není dostupné - přeskakuji hledání okna: {windowTitle}");
+            LogMessage(string.Format("UI Automation není dostupné - přeskakuji hledání okna: {0}", windowTitle));
             return null;
 #else
             DateTime timeout = DateTime.Now.AddSeconds(timeoutSeconds);
@@ -652,19 +652,19 @@ namespace StarterLauncher
 
                     if (window != null)
                     {
-                        LogMessage($"Okno nalezeno: {windowTitle}");
+                        LogMessage(string.Format("Okno nalezeno: {0}", windowTitle));
                         return window;
                     }
                 }
                 catch (Exception ex)
                 {
-                    LogMessage($"Chyba při hledání okna {windowTitle}: {ex.Message}");
+                    LogMessage(string.Format("Chyba při hledání okna {0}: {1}", windowTitle, ex.Message));
                 }
 
                 Thread.Sleep(1000);
             }
 
-            LogMessage($"Okno nenalezeno po {timeoutSeconds}s: {windowTitle}");
+            LogMessage(string.Format("Okno nenalezeno po {0}s: {1}", timeoutSeconds, windowTitle));
             return null;
 #endif
         }
@@ -672,7 +672,7 @@ namespace StarterLauncher
         private static bool ClickButtonByName(AutomationElement window, string buttonName)
         {
 #if NO_UI_AUTOMATION
-            LogMessage($"UI Automation není dostupné - nelze kliknout na tlačítko: {buttonName}");
+            LogMessage(string.Format("UI Automation není dostupné - nelze kliknout na tlačítko: {0}", buttonName));
             return false;
 #else
             try
@@ -682,22 +682,22 @@ namespace StarterLauncher
 
                 if (button != null)
                 {
-                    LogMessage($"Tlačítko nalezeno: {buttonName}");
+                    LogMessage(string.Format("Tlačítko nalezeno: {0}", buttonName));
                     
                     if (button.TryGetCurrentPattern(InvokePattern.Pattern, out object pattern))
                     {
                         ((InvokePattern)pattern).Invoke();
-                        LogMessage($"Kliknuto na tlačítko: {buttonName}");
+                        LogMessage(string.Format("Kliknuto na tlačítko: {0}", buttonName));
                         return true;
                     }
                 }
 
-                LogMessage($"Tlačítko nenalezeno nebo nejde kliknout: {buttonName}");
+                LogMessage(string.Format("Tlačítko nenalezeno nebo nejde kliknout: {0}", buttonName));
                 return false;
             }
             catch (Exception ex)
             {
-                LogMessage($"Chyba při kliku na tlačítko {buttonName}: {ex.Message}");
+                LogMessage(string.Format("Chyba při kliku na tlačítko {0}: {1}", buttonName, ex.Message));
                 return false;
             }
 #endif
@@ -706,7 +706,7 @@ namespace StarterLauncher
         private static bool ClickButtonByAutomationId(AutomationElement window, string automationId)
         {
 #if NO_UI_AUTOMATION
-            LogMessage($"UI Automation není dostupné - nelze kliknout na tlačítko (AutomationId): {automationId}");
+            LogMessage(string.Format("UI Automation není dostupné - nelze kliknout na tlačítko (AutomationId): {0}", automationId));
             return false;
 #else
             try
@@ -716,22 +716,22 @@ namespace StarterLauncher
 
                 if (button != null)
                 {
-                    LogMessage($"Tlačítko nalezeno (AutomationId): {automationId}");
+                    LogMessage(string.Format("Tlačítko nalezeno (AutomationId): {0}", automationId));
                     
                     if (button.TryGetCurrentPattern(InvokePattern.Pattern, out object pattern))
                     {
                         ((InvokePattern)pattern).Invoke();
-                        LogMessage($"Kliknuto na tlačítko (AutomationId): {automationId}");
+                        LogMessage(string.Format("Kliknuto na tlačítko (AutomationId): {0}", automationId));
                         return true;
                     }
                 }
 
-                LogMessage($"Tlačítko nenalezeno (AutomationId): {automationId}");
+                LogMessage(string.Format("Tlačítko nenalezeno (AutomationId): {0}", automationId));
                 return false;
             }
             catch (Exception ex)
             {
-                LogMessage($"Chyba při kliku na tlačítko (AutomationId) {automationId}: {ex.Message}");
+                LogMessage(string.Format("Chyba při kliku na tlačítko (AutomationId) {0}: {1}", automationId, ex.Message));
                 return false;
             }
 #endif
@@ -740,7 +740,7 @@ namespace StarterLauncher
         private static bool ClickRelative(AutomationElement window, int x, int y)
         {
 #if NO_UI_AUTOMATION
-            LogMessage($"UI Automation není dostupné - nelze provést relativní klik na {x}, {y}");
+            LogMessage(string.Format("UI Automation není dostupné - nelze provést relativní klik na {0}, {1}", x, y));
             return false;
 #else
             try
@@ -757,7 +757,7 @@ namespace StarterLauncher
                 int clickX = rect.Left + x;
                 int clickY = rect.Top + y;
 
-                LogMessage($"Relativní klik na souřadnice: {x}, {y} (absolutní: {clickX}, {clickY})");
+                LogMessage(string.Format("Relativní klik na souřadnice: {0}, {1} (absolutní: {2}, {3})", x, y, clickX, clickY));
 
                 SetForegroundWindow(hwnd);
                 Thread.Sleep(100);
@@ -774,7 +774,7 @@ namespace StarterLauncher
             }
             catch (Exception ex)
             {
-                LogMessage($"Chyba při relativním kliku: {ex.Message}");
+                LogMessage(string.Format("Chyba při relativním kliku: {0}", ex.Message));
                 return false;
             }
 #endif
@@ -792,7 +792,7 @@ namespace StarterLauncher
             }
             catch (Exception ex)
             {
-                LogMessage($"Chyba při minimalizaci okna: {ex.Message}");
+                LogMessage(string.Format("Chyba při minimalizaci okna: {0}", ex.Message));
             }
 #endif
         }
@@ -812,7 +812,7 @@ namespace StarterLauncher
             }
             catch (Exception ex)
             {
-                LogMessage($"Chyba při zavírání okna: {ex.Message}");
+                LogMessage(string.Format("Chyba při zavírání okna: {0}", ex.Message));
             }
 #endif
         }

@@ -218,23 +218,23 @@ namespace StarterLauncher
 
         private static bool StartBaseApps()
         {
-            if (config.Apps == null || config.Apps.Length == 0)
+            if (config.apps == null || config.apps.Length == 0)
             {
                 LogMessage("Žádné základní aplikace k spuštění");
                 return true;
             }
 
-            for (int i = 0; i < config.Apps.Length; i++)
+            for (int i = 0; i < config.apps.Length; i++)
             {
-                var app = config.Apps[i];
-                LogMessage(string.Format("Spouštím App{0}: {1}", i + 1, app.Path));
+                var app = config.apps[i];
+                LogMessage(string.Format("Spouštím App{0}: {1}", i + 1, app.path));
 
                 try
                 {
                     // Najdi a ukonči již běžící procesy této aplikace
-                    TerminateExistingProcesses(app.Path);
+                    TerminateExistingProcesses(app.path);
 
-                    string appPath = FindApplicationPath(app.Path, GetAppSearchNames(i + 1));
+                    string appPath = FindApplicationPath(app.path, GetAppSearchNames(i + 1));
                     if (string.IsNullOrEmpty(appPath))
                     {
                         if (i == 0) // App1 může chybět
@@ -242,7 +242,7 @@ namespace StarterLauncher
                             LogMessage("App1 není dostupná - pokračujem");
                             continue;
                         }
-                        LogError(string.Format("Aplikace nenalezena: {0}", app.Path));
+                        LogError(string.Format("Aplikace nenalezena: {0}", app.path));
                         return false;
                     }
 
@@ -422,13 +422,13 @@ namespace StarterLauncher
         {
             try
             {
-                if (string.IsNullOrEmpty(app.WindowTitle))
+                if (string.IsNullOrEmpty(app.windowTitle))
                     return true;
 
-                AutomationElement window = WaitForWindow(app.WindowTitle, timeoutWindowSeconds);
+                AutomationElement window = WaitForWindow(app.windowTitle, timeoutWindowSeconds);
                 if (window == null)
                 {
-                    LogError(string.Format("App2 okno nenalezeno: {0}", app.WindowTitle));
+                    LogError(string.Format("App2 okno nenalezeno: {0}", app.windowTitle));
                     return false;
                 }
 
@@ -456,13 +456,13 @@ namespace StarterLauncher
         {
             try
             {
-                if (string.IsNullOrEmpty(app.WindowTitle))
+                if (string.IsNullOrEmpty(app.windowTitle))
                     return true;
 
-                AutomationElement window = WaitForWindow(app.WindowTitle, timeoutWindowSeconds);
+                AutomationElement window = WaitForWindow(app.windowTitle, timeoutWindowSeconds);
                 if (window == null)
                 {
-                    LogError(string.Format("App3 okno nenalezeno: {0}", app.WindowTitle));
+                    LogError(string.Format("App3 okno nenalezeno: {0}", app.windowTitle));
                     return false;
                 }
 
@@ -485,11 +485,11 @@ namespace StarterLauncher
 
         private static bool CheckConnectivity()
         {
-            string[] hosts = (config.Conditional != null && config.Conditional.PingHosts != null) 
-                ? config.Conditional.PingHosts 
+            string[] hosts = (config.conditional != null && config.conditional.pingHosts != null) 
+                ? config.conditional.pingHosts 
                 : new[] { "1.1.1.1", "9.9.9.9" };
-            int timeout = (config.Conditional != null) 
-                ? config.Conditional.PingTimeoutMs 
+            int timeout = (config.conditional != null) 
+                ? config.conditional.pingTimeoutMs 
                 : 1500;
 
             foreach (string host in hosts)
@@ -526,13 +526,13 @@ namespace StarterLauncher
 
         private static bool StartConditionalApp(bool isOnline)
         {
-            if (config.Conditional == null)
+            if (config.conditional == null)
             {
                 LogMessage("Žádné podmíněné aplikace konfigurovány");
                 return true;
             }
 
-            AppConfig app = isOnline ? config.Conditional.Online : config.Conditional.Offline;
+            AppConfig app = isOnline ? config.conditional.online : config.conditional.offline;
             if (app == null)
             {
                 LogMessage(string.Format("Žádná aplikace pro režim {0}", (isOnline ? "ONLINE" : "OFFLINE")));
@@ -541,15 +541,15 @@ namespace StarterLauncher
 
             try
             {
-                LogMessage(string.Format("Spouštím {0} aplikace: {1}", (isOnline ? "ONLINE" : "OFFLINE"), app.Path));
+                LogMessage(string.Format("Spouštím {0} aplikace: {1}", (isOnline ? "ONLINE" : "OFFLINE"), app.path));
 
                 // Ukonči případné běžící procesy
-                TerminateExistingProcesses(app.Path);
+                TerminateExistingProcesses(app.path);
 
-                string appPath = FindApplicationPath(app.Path, GetAppSearchNames(isOnline ? 4 : 5));
+                string appPath = FindApplicationPath(app.path, GetAppSearchNames(isOnline ? 4 : 5));
                 if (string.IsNullOrEmpty(appPath))
                 {
-                    LogError(string.Format("Podmíněná aplikace nenalezena: {0}", app.Path));
+                    LogError(string.Format("Podmíněná aplikace nenalezena: {0}", app.path));
                     return false;
                 }
 
@@ -570,7 +570,7 @@ namespace StarterLauncher
                     LogMessage(string.Format("Podmíněná aplikace spuštěna (PID: {0})", process.Id));
 
                     // Pokud je definován klik, proveď ho
-                    if (app.Click != null && !string.IsNullOrEmpty(app.WindowTitle))
+                    if (app.click != null && !string.IsNullOrEmpty(app.windowTitle))
                     {
                         return HandleConditionalAppClick(app);
                     }
@@ -593,19 +593,19 @@ namespace StarterLauncher
         {
             try
             {
-                AutomationElement window = WaitForWindow(app.WindowTitle, timeoutWindowSeconds);
+                AutomationElement window = WaitForWindow(app.windowTitle, timeoutWindowSeconds);
                 if (window == null)
                 {
-                    LogError(string.Format("Okno podmíněné aplikace nenalezeno: {0}", app.WindowTitle));
+                    LogError(string.Format("Okno podmíněné aplikace nenalezeno: {0}", app.windowTitle));
                     return false;
                 }
 
                 bool clickSuccessful = false;
 
-                if (app.Click.Type.ToLower() == "uia")
+                if (app.click.type.ToLower() == "uia")
                 {
-                    string buttonName = (app.Click.ButtonName != null) ? app.Click.ButtonName : "";
-                    string automationId = (app.Click.AutomationId != null) ? app.Click.AutomationId : "";
+                    string buttonName = (app.click.buttonName != null) ? app.click.buttonName : "";
+                    string automationId = (app.click.automationId != null) ? app.click.automationId : "";
 
                     if (!string.IsNullOrEmpty(buttonName))
                     {
@@ -618,10 +618,10 @@ namespace StarterLauncher
                 }
 
                 // Fallback klik
-                if (!clickSuccessful && app.FallbackClick != null)
+                if (!clickSuccessful && app.fallbackClick != null)
                 {
                     LogMessage("UIA klik selhal, používám fallback klik");
-                    clickSuccessful = ClickRelative(window, app.FallbackClick.X, app.FallbackClick.Y);
+                    clickSuccessful = ClickRelative(window, app.fallbackClick.x, app.fallbackClick.y);
                 }
 
                 if (clickSuccessful)
@@ -834,10 +834,6 @@ namespace StarterLauncher
     {
         public AppConfig[] apps { get; set; }
         public ConditionalConfig conditional { get; set; }
-        
-        // Vlastnosti s PascalCase pro kompatibilitu
-        public AppConfig[] Apps { get { return apps; } set { apps = value; } }
-        public ConditionalConfig Conditional { get { return conditional; } set { conditional = value; } }
     }
 
     public class AppConfig
@@ -846,12 +842,6 @@ namespace StarterLauncher
         public string windowTitle { get; set; }
         public ClickConfig click { get; set; }
         public FallbackClickConfig fallbackClick { get; set; }
-        
-        // Vlastnosti s PascalCase pro kompatibilitu
-        public string Path { get { return path; } set { path = value; } }
-        public string WindowTitle { get { return windowTitle; } set { windowTitle = value; } }
-        public ClickConfig Click { get { return click; } set { click = value; } }
-        public FallbackClickConfig FallbackClick { get { return fallbackClick; } set { fallbackClick = value; } }
     }
 
     public class ConditionalConfig
@@ -861,13 +851,6 @@ namespace StarterLauncher
         public string[] pingHosts { get; set; }
         public int pingTimeoutMs { get; set; }
         public bool startAfterAllBaseApps { get; set; }
-        
-        // Vlastnosti s PascalCase pro kompatibilitu
-        public AppConfig Online { get { return online; } set { online = value; } }
-        public AppConfig Offline { get { return offline; } set { offline = value; } }
-        public string[] PingHosts { get { return pingHosts; } set { pingHosts = value; } }
-        public int PingTimeoutMs { get { return pingTimeoutMs; } set { pingTimeoutMs = value; } }
-        public bool StartAfterAllBaseApps { get { return startAfterAllBaseApps; } set { startAfterAllBaseApps = value; } }
     }
 
     public class ClickConfig
@@ -875,20 +858,11 @@ namespace StarterLauncher
         public string type { get; set; }
         public string buttonName { get; set; }
         public string automationId { get; set; }
-        
-        // Vlastnosti s PascalCase pro kompatibilitu
-        public string Type { get { return type; } set { type = value; } }
-        public string ButtonName { get { return buttonName; } set { buttonName = value; } }
-        public string AutomationId { get { return automationId; } set { automationId = value; } }
     }
 
     public class FallbackClickConfig
     {
         public int x { get; set; }
         public int y { get; set; }
-        
-        // Vlastnosti s PascalCase pro kompatibilitu
-        public int X { get { return x; } set { x = value; } }
-        public int Y { get { return y; } set { y = value; } }
     }
 }

@@ -1,12 +1,11 @@
 using System;
 using System.Threading;
 using System.Diagnostics;
-using ButtonRecognitionTool;
 
 /// <summary>
-/// Hlavní launcher aplikací - používá ButtonRecognitionTool pro automatické spouštění a ovládání aplikací
+/// Jednoduchý launcher aplikací - základní verze bez ButtonRecognitionTool závislostí
 /// </summary>
-class Starter
+class SimpleStarter
 {
     private static readonly int WAIT_TIME_SIMHUB = 8000; // ms
     private static readonly int WAIT_TIME_AITRACK = 4000; // ms
@@ -15,8 +14,8 @@ class Starter
     {
         try
         {
-            Console.WriteLine("=== Starter - Automatický launcher aplikací ===");
-            Console.WriteLine("Verze: 2.0 (s Button Recognition)");
+            Console.WriteLine("=== Starter - Launcher aplikací ===");
+            Console.WriteLine("Verze: 1.0 (Simple)");
             Console.WriteLine();
 
             // Kontrola parametrů
@@ -31,25 +30,27 @@ class Starter
 
             LogMessage("Zahajuji spouštění aplikací...", verbose);
 
-            // 1. Spuštění SimHub a aktivace
+            // 1. Spuštění SimHub
             if (!StartSimHub(dryRun, verbose))
             {
                 LogError("SimHub se nepodařilo spustit správně");
                 return 1;
             }
 
-            // 2. Spuštění AITrack a zahájení trackingu
+            // 2. Spuštění AITrack
             if (!StartAITrack(dryRun, verbose))
             {
                 LogError("AITrack se nepodařilo spustit správně");
                 return 1;
             }
 
-            LogMessage("✓ Všechny aplikace byly úspěšně spuštěny a aktivovány!", verbose);
+            LogMessage("✓ Všechny aplikace byly úspěšně spuštěny!", verbose);
             LogMessage("", verbose);
             LogMessage("Spuštěné aplikace:", verbose);
-            LogMessage("- SimHub (aktivováno)", verbose);
-            LogMessage("- AITrack (tracking spuštěn)", verbose);
+            LogMessage("- SimHub", verbose);
+            LogMessage("- AITrack", verbose);
+            LogMessage("", verbose);
+            LogMessage("POZNÁMKA: Musíte manuálně kliknout na 'Activate' v SimHub a 'Start Tracking' v AITrack", verbose);
             
             return 0;
         }
@@ -70,28 +71,58 @@ class Starter
             {
                 LogMessage("[DRY-RUN] Simuluji spuštění SimHub...", verbose);
                 Thread.Sleep(1000);
-                LogMessage("[DRY-RUN] SimHub 'spuštěn' a 'aktivován'", verbose);
+                LogMessage("[DRY-RUN] SimHub 'spuštěn'", verbose);
                 return true;
             }
 
-            var simHubAutomation = new SimHubAutomation();
-            bool success = simHubAutomation.OpenSimHubAndActivate();
-
-            if (success)
+            // Kontrola, jestli už SimHub neběží
+            var existingProcesses = Process.GetProcessesByName("SimHub");
+            if (existingProcesses.Length == 0)
             {
-                LogMessage("✓ SimHub úspěšně spuštěn a aktivován", verbose);
-                
-                // Krátké čekání na dokončení aktivace
-                LogMessage($"Čekám {WAIT_TIME_SIMHUB/1000}s na dokončení aktivace...", verbose);
-                Thread.Sleep(WAIT_TIME_SIMHUB);
-                
+                existingProcesses = Process.GetProcessesByName("SimHubWPF");
+            }
+
+            if (existingProcesses.Length > 0)
+            {
+                LogMessage("SimHub už běží", verbose);
                 return true;
             }
-            else
+
+            // Pokus o spuštění SimHub
+            string[] possiblePaths = {
+                @"C:\Program Files (x86)\SimHub\SimHubWPF.exe",
+                @"C:\Program Files\SimHub\SimHubWPF.exe",
+                @"C:\SimHub\SimHubWPF.exe",
+                @"D:\SimHub\SimHubWPF.exe"
+            };
+
+            bool launched = false;
+            foreach (string path in possiblePaths)
             {
-                LogError("✗ Nepodařilo se spustit a aktivovat SimHub");
+                if (System.IO.File.Exists(path))
+                {
+                    LogMessage($"Spouštím SimHub z: {path}", verbose);
+                    Process.Start(path);
+                    launched = true;
+                    break;
+                }
+            }
+
+            if (!launched)
+            {
+                LogError("SimHub executable nebyl nalezen v těchto umístěních:");
+                foreach (string path in possiblePaths)
+                {
+                    LogError($"  - {path}");
+                }
                 return false;
             }
+
+            LogMessage($"Čekám {WAIT_TIME_SIMHUB/1000}s na spuštění SimHub...", verbose);
+            Thread.Sleep(WAIT_TIME_SIMHUB);
+            
+            LogMessage("✓ SimHub spuštěn (nezapomeňte kliknout na 'Activate')", verbose);
+            return true;
         }
         catch (Exception ex)
         {
@@ -110,28 +141,59 @@ class Starter
             {
                 LogMessage("[DRY-RUN] Simuluji spuštění AITrack...", verbose);
                 Thread.Sleep(1000);
-                LogMessage("[DRY-RUN] AITrack 'spuštěn' a tracking 'zahájen'", verbose);
+                LogMessage("[DRY-RUN] AITrack 'spuštěn'", verbose);
                 return true;
             }
 
-            var aiTrackAutomation = new AITrackAutomation();
-            bool success = aiTrackAutomation.OpenAITrackAndStartTracking();
-
-            if (success)
+            // Kontrola, jestli už AITrack neběží
+            var existingProcesses = Process.GetProcessesByName("AITrack");
+            if (existingProcesses.Length == 0)
             {
-                LogMessage("✓ AITrack úspěšně spuštěn a tracking zahájen", verbose);
-                
-                // Krátké čekání na zahájení trackingu
-                LogMessage($"Čekám {WAIT_TIME_AITRACK/1000}s na zahájení trackingu...", verbose);
-                Thread.Sleep(WAIT_TIME_AITRACK);
-                
+                existingProcesses = Process.GetProcessesByName("aitrack");
+            }
+
+            if (existingProcesses.Length > 0)
+            {
+                LogMessage("AITrack už běží", verbose);
                 return true;
             }
-            else
+
+            // Pokus o spuštění AITrack
+            string[] possiblePaths = {
+                @"C:\Program Files\AITrack\AITrack.exe",
+                @"C:\Program Files (x86)\AITrack\AITrack.exe",
+                @"C:\AITrack\AITrack.exe",
+                @"D:\AITrack\AITrack.exe",
+                @".\AITrack.exe"
+            };
+
+            bool launched = false;
+            foreach (string path in possiblePaths)
             {
-                LogError("✗ Nepodařilo se spustit AITrack nebo zahájit tracking");
+                if (System.IO.File.Exists(path))
+                {
+                    LogMessage($"Spouštím AITrack z: {path}", verbose);
+                    Process.Start(path);
+                    launched = true;
+                    break;
+                }
+            }
+
+            if (!launched)
+            {
+                LogError("AITrack executable nebyl nalezen v těchto umístěních:");
+                foreach (string path in possiblePaths)
+                {
+                    LogError($"  - {path}");
+                }
                 return false;
             }
+
+            LogMessage($"Čekám {WAIT_TIME_AITRACK/1000}s na spuštění AITrack...", verbose);
+            Thread.Sleep(WAIT_TIME_AITRACK);
+            
+            LogMessage("✓ AITrack spuštěn (nezapomeňte kliknout na 'Start Tracking')", verbose);
+            return true;
         }
         catch (Exception ex)
         {
@@ -142,7 +204,7 @@ class Starter
 
     private static void ShowHelp()
     {
-        Console.WriteLine("Starter - Automatický launcher aplikací");
+        Console.WriteLine("SimpleStarter - Jednoduchý launcher aplikací");
         Console.WriteLine();
         Console.WriteLine("Použití:");
         Console.WriteLine("  Starter.exe [možnosti]");
@@ -155,17 +217,12 @@ class Starter
         Console.WriteLine("  -h          Zkrácená forma --help");
         Console.WriteLine();
         Console.WriteLine("Funkce:");
-        Console.WriteLine("  1. Spustí SimHub a automaticky klikne na 'Activate'");
-        Console.WriteLine("  2. Spustí AITrack a automaticky klikne na 'Start Tracking'");
+        Console.WriteLine("  1. Spustí SimHub (musíte manuálně kliknout na 'Activate')");
+        Console.WriteLine("  2. Spustí AITrack (musíte manuálně kliknout na 'Start Tracking')");
         Console.WriteLine();
         Console.WriteLine("Návratové kódy:");
         Console.WriteLine("  0 - Úspěch");
         Console.WriteLine("  1 - Chyba");
-        Console.WriteLine();
-        Console.WriteLine("Požadavky:");
-        Console.WriteLine("  - Windows s .NET 9.0 runtime");
-        Console.WriteLine("  - SimHub nainstalovaný v standardních umístěních");
-        Console.WriteLine("  - AITrack dostupný v standardních umístěních");
     }
 
     private static void LogMessage(string message, bool verbose = true)
@@ -185,7 +242,6 @@ class Starter
 
     private static bool IsImportantMessage(string message)
     {
-        // Vždy zobrazit důležité zprávy i bez verbose
         return message.Contains("✓") || 
                message.Contains("✗") || 
                message.Contains("===") ||
@@ -193,6 +249,3 @@ class Starter
                message.Contains("Spuštěné aplikace:");
     }
 }
-
-// Starter.cs používá existující ButtonRecognitionTool třídy
-// SimHubAutomation a AITrackAutomation jsou definované v samostatných souborech

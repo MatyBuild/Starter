@@ -180,7 +180,7 @@ namespace ButtonRecognitionTool
                 if (allControls.Count == 0 && debugMode)
                 {
                     Console.WriteLine("No direct child windows found. Trying alternative enumeration...");
-                    EnumerateProcessWindows(parentHandle, allControls, allHandles);
+                    EnumerateProcessWindows(appInfo.MainWindowHandle, allControls, allHandles);
                 }
                 
                 // If still no buttons found, try UI Automation for modern frameworks
@@ -517,52 +517,22 @@ namespace ButtonRecognitionTool
         {
             try
             {
-                // Try UI Automation first
-                var uiAutomation = new UIAutomationHelper();
-                if (uiAutomation.IsUIAutomationAvailable())
+                // Try modern UI pattern detection
+                var modernUIHelper = new ModernUIHelper();
+                var modernButtons = modernUIHelper.TryModernUIDetection(appInfo.MainWindowHandle, debugMode);
+                
+                if (modernButtons.Count > 0)
                 {
+                    appInfo.Buttons.AddRange(modernButtons);
                     if (debugMode)
                     {
-                        Console.WriteLine("UI Automation is available, searching for buttons...");
-                    }
-                    
-                    var automationButtons = uiAutomation.FindButtonsUsingUIAutomation(appInfo.MainWindowHandle);
-                    appInfo.Buttons.AddRange(automationButtons);
-                    
-                    if (debugMode)
-                    {
-                        Console.WriteLine($"UI Automation found {automationButtons.Count} buttons");
-                    }
-                }
-                else
-                {
-                    if (debugMode)
-                    {
-                        Console.WriteLine("UI Automation is not available on this system");
+                        Console.WriteLine($"Modern UI detection found {modernButtons.Count} button(s)");
                     }
                 }
                 
-                // Also try Accessibility API as fallback
-                if (debugMode)
-                {
-                    Console.WriteLine("Also trying Accessibility API...");
-                }
-                
-                var accessibilityHelper = new AccessibilityHelper();
-                var accessibilityButtons = accessibilityHelper.FindButtonsUsingAccessibility(appInfo.MainWindowHandle, debugMode);
-                
-                if (accessibilityButtons.Count > 0)
-                {
-                    appInfo.Buttons.AddRange(accessibilityButtons);
-                    if (debugMode)
-                    {
-                        Console.WriteLine($"Accessibility API found {accessibilityButtons.Count} additional buttons");
-                    }
-                }
-                else if (debugMode)
-                {
-                    Console.WriteLine("Accessibility API found no buttons");
-                }
+                // Show helpful tips for this type of application
+                string windowClass = WindowsAPIHelper.GetClassName(appInfo.MainWindowHandle);
+                modernUIHelper.ShowDetectionTips(windowClass, debugMode);
             }
             catch (Exception ex)
             {

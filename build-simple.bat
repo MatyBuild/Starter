@@ -22,10 +22,10 @@ echo Mazani starych buildu...
 if exist Starter.exe del Starter.exe
 if exist SimpleStarter.exe del SimpleStarter.exe
 
-REM Build
+REM Build pouze SimpleStarter.cs (ne ostatni cs soubory)
 echo.
 echo Building SimpleStarter.exe...
-dotnet publish SimpleStarter.cs -c Release -o . --self-contained false --use-current-runtime
+dotnet build SimpleStarter.cs -c Release -o .
 
 if %ERRORLEVEL% neq 0 (
     echo.

@@ -125,6 +125,69 @@ namespace ButtonRecognitionTool
             return buttons;
         }
         
+        public List<ButtonInfo> CreateAITrackButtons(IntPtr windowHandle, bool debugMode = false)
+        {
+            List<ButtonInfo> buttons = new List<ButtonInfo>();
+            
+            try
+            {
+                if (debugMode)
+                {
+                    Console.WriteLine("Creating coordinate-based buttons for AITrack...");
+                }
+                
+                // Get window bounds
+                RECT windowRect;
+                if (!GetWindowRect(windowHandle, out windowRect))
+                {
+                    if (debugMode) Console.WriteLine("Could not get window rectangle");
+                    return buttons;
+                }
+                
+                if (debugMode)
+                {
+                    Console.WriteLine($"Window rect: ({windowRect.Left}, {windowRect.Top}) - ({windowRect.Right}, {windowRect.Bottom})");
+                    Console.WriteLine($"Window size: {windowRect.Width}x{windowRect.Height}");
+                }
+                
+                // AITrack typically has buttons in the bottom area
+                // Based on typical AITrack layout:
+                
+                // Main tracking button (usually center-bottom)
+                buttons.Add(CreateCoordinateButton(windowHandle, windowRect, 0.5f, 0.8f, 0.2f, 0.08f, "Start Tracking", "StartTrackingBtn", 1));
+                buttons.Add(CreateCoordinateButton(windowHandle, windowRect, 0.5f, 0.8f, 0.2f, 0.08f, "Start Tracking (Estimated)", "StartTrackingEstBtn", 2));
+                
+                // Stop button (usually appears after start)
+                buttons.Add(CreateCoordinateButton(windowHandle, windowRect, 0.5f, 0.8f, 0.2f, 0.08f, "Stop Tracking", "StopTrackingBtn", 3));
+                
+                // Configuration/Settings buttons (usually top-right or bottom)
+                buttons.Add(CreateCoordinateButton(windowHandle, windowRect, 0.8f, 0.1f, 0.15f, 0.06f, "Settings", "SettingsBtn", 4));
+                buttons.Add(CreateCoordinateButton(windowHandle, windowRect, 0.1f, 0.9f, 0.15f, 0.06f, "Config", "ConfigBtn", 5));
+                
+                // Camera selection (usually top area)
+                buttons.Add(CreateCoordinateButton(windowHandle, windowRect, 0.3f, 0.1f, 0.15f, 0.06f, "Camera", "CameraBtn", 6));
+                
+                if (debugMode)
+                {
+                    Console.WriteLine($"Created {buttons.Count} coordinate-based buttons for AITrack");
+                    foreach (var btn in buttons)
+                    {
+                        Console.WriteLine($"  - {btn}");
+                    }
+                }
+                
+            }
+            catch (Exception ex)
+            {
+                if (debugMode)
+                {
+                    Console.WriteLine($"Error creating AITrack buttons: {ex.Message}");
+                }
+            }
+            
+            return buttons;
+        }
+        
         private ButtonInfo CreateCoordinateButton(IntPtr windowHandle, RECT windowRect, float relX, float relY, float relW, float relH, string text, string id, int controlId)
         {
             // Convert relative coordinates to absolute screen coordinates

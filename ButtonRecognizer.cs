@@ -352,9 +352,9 @@ namespace ButtonRecognitionTool
 
         public bool ClickButton(ButtonInfo button)
         {
-            if (button?.Handle == IntPtr.Zero)
+            if (button == null)
             {
-                Console.WriteLine("Invalid button handle");
+                Console.WriteLine("Invalid button");
                 return false;
             }
 
@@ -368,13 +368,24 @@ namespace ButtonRecognitionTool
             {
                 Console.WriteLine($"Clicking button: '{button.Text}'");
                 
-                // Try multiple click methods for better compatibility
-                WindowsAPIHelper.ClickButton(button.Handle);
-                
-                // Alternative method: physical mouse click
-                // WindowsAPIHelper.ClickButtonAtPosition(button.Handle);
-                
-                return true;
+                // Check if this is a coordinate-based button
+                if (button.ClassName == "CoordinateButton")
+                {
+                    var coordHelper = new CoordinateButtonHelper();
+                    return coordHelper.ClickCoordinateButton(button, true);
+                }
+                // Traditional Win32 button
+                else if (button.Handle != IntPtr.Zero)
+                {
+                    // Try multiple click methods for better compatibility
+                    WindowsAPIHelper.ClickButton(button.Handle);
+                    return true;
+                }
+                else
+                {
+                    Console.WriteLine("Cannot click button - no handle or coordinate information available");
+                    return false;
+                }
             }
             catch (Exception ex)
             {

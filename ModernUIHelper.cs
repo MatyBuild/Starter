@@ -100,6 +100,25 @@ namespace ButtonRecognitionTool
                         Console.WriteLine("- Custom controls that don't appear as child windows");
                         Console.WriteLine("- Controls that require UI Automation or accessibility APIs");
                     }
+                    
+                    // Special handling for SimHub
+                    string windowTitle = WindowsAPIHelper.GetWindowText(windowHandle);
+                    if (windowTitle.Contains("SimHub"))
+                    {
+                        if (debugMode)
+                        {
+                            Console.WriteLine("\nDetected SimHub! Creating coordinate-based buttons...");
+                        }
+                        
+                        var coordHelper = new CoordinateButtonHelper();
+                        var simHubButtons = coordHelper.CreateSimHubButtons(windowHandle, debugMode);
+                        buttons.AddRange(simHubButtons);
+                        
+                        if (debugMode)
+                        {
+                            Console.WriteLine($"Added {simHubButtons.Count} SimHub-specific buttons");
+                        }
+                    }
                 }
                 
             }

@@ -7,7 +7,7 @@
     },
     {
 
-      "path": "C:\\Users\\basicgame\\Plocha\\SimHub.exe",
+      "path": "C:\\Users\\Public\\Desktop\\SimHub.lnk",
       "windowTitle": "SimHub",
       "click": {
         "type": "uia",
@@ -16,7 +16,7 @@
       }
     },
     {
-      "path": "C:\\Users\\basicgame\\Plocha\\AiTrack.exe",
+      "path": "C:\\Users\\vanha\\Plocha\\AITrack.lnk",
       "windowTitle": "AiTrack",
       "click": {
         "type": "uia",
@@ -27,7 +27,7 @@
   ],
   "conditional": {
     "online": {
-      "path": "C:\\Users\\basicgame\\Plocha\\Drivetech Launcher.exe",
+      "path": "C:\\Users\\basicgame\\Plocha\\Drivetech Launcher.lnk",
       "windowTitle": "Drivetech Launcher",
       "click": {
         "type": "uia",
@@ -40,7 +40,7 @@
       }
     },
     "offline": {
-      "path": "C:\\Users\\basicgame\\Plocha\\Drivetech Offline.exe",
+      "path": "C:\\Users\\basicgame\\Plocha\\Drivetech Offline.lnk",
       "windowTitle": "Drivetech Offline",
       "click": {
         "type": "uia",

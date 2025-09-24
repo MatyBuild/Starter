@@ -1,4 +1,59 @@
-# Button Recognition Tool
+# WARP - Windows Application Launcher System
+
+A comprehensive suite of Windows application automation tools including:
+- **WARP Launcher** - Advanced application launcher with UI automation
+- **Button Recognition Tool** - Powerful button detection and interaction system
+
+## WARP Launcher
+
+WARP (Windows Application Rapid Processor) je pokročilý launcher systém pro automatické spouštění racing a simulation aplikací s inteligentní UI automation.
+
+### Základní použití
+
+```cmd
+# Spustit s konfigurací
+.\Starter.exe --config "config.json"
+
+# Testovací režim (bez spouštění aplikací)
+.\Starter.exe --config "config.json" --dry-run
+
+# S logováním do souboru
+.\Starter.exe --config "config.json" --log "launcher.log"
+
+# Vlastní timeout pro čekání na okna
+.\Starter.exe --config "config.json" --timeoutWindow 60
+```
+
+### Build proces
+
+```powershell
+# Standardní build do Starter.exe
+.\build-launcher.ps1
+
+# S vlastním názvem výstupního souboru
+.\build-launcher.ps1 -OutputName "MyLauncher.exe"
+
+# S verbose výstupem pro debugging
+.\build-launcher.ps1 -Verbose
+```
+
+### Funkce WARP Launcheru
+
+- **Automatické spouštění aplikací**: App1 (Sim Racing Studio), App2 (SimHub), App3 (AiTrack)
+- **Konektivity testing**: Ping na 1.1.1.1 a 9.9.9.9 pro ONLINE/OFFLINE rozhodování
+- **Podmíněné spouštění**: App4 (Drivetech Launcher) nebo App5 (Drivetech Offline)
+- **UI Automation**: Automatické klikání na tlačítka pomocí Windows UI Automation
+- **Fallback mechanismy**: Souřadnicové kliky když UI Automation selže
+- **Process management**: Detekce a restart běžících aplikací
+- **Desktop search**: Automatické hledání aplikací na ploše
+
+### Konfigurace
+
+Viz `config.sample.json` pro kompletní příklad konfigurace. Detailní dokumentace v `WARP.md`.
+
+---
+
+## Button Recognition Tool
 
 A powerful C# tool for recognizing and interacting with buttons in any Windows application. This tool can discover buttons, monitor their states, and simulate clicks programmatically.
 

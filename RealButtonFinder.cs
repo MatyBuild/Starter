@@ -333,36 +333,46 @@ namespace ButtonRecognitionTool
             
             try
             {
-                // Bring window to front
-                SetForegroundWindow(window);
-                Thread.Sleep(400);
-                
-                // Try to refine target using on-screen color detection (green button center)
+                // Get window bounds for activation click
                 RECT winRect;
                 GetWindowRect(window, out winRect);
+                
+                // Step 1: Activate the window by clicking in safe area (center-left)
+                Console.WriteLine("Step 1: Activating window...");
+                int safeX = winRect.Left + (winRect.Width / 4);  // 25% from left
+                int safeY = winRect.Top + (winRect.Height / 2);  // Middle height
+                
+                SetCursorPos(safeX, safeY);
+                Thread.Sleep(200);
+                mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, IntPtr.Zero);
+                Thread.Sleep(50);
+                mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, IntPtr.Zero);
+                Thread.Sleep(300); // Wait for window to become active
+                
+                Console.WriteLine($"Window activated by clicking at ({safeX}, {safeY})");
+                
+                // Step 2: Now click on the actual button
+                Console.WriteLine("Step 2: Clicking on Activate button...");
+                
+                // Try to refine target using on-screen color detection (green button center)
                 var corrected = FindGreenCenterNear(button.CenterX, button.CenterY, winRect, 160, 40);
                 int targetX = corrected.x > 0 ? corrected.x : button.CenterX;
                 int targetY = corrected.y > 0 ? corrected.y : button.CenterY;
                 
-                Console.WriteLine($"Moving mouse to ({targetX}, {targetY})...");
+                Console.WriteLine($"Moving mouse to button at ({targetX}, {targetY})...");
                 SetCursorPos(targetX, targetY);
-                Thread.Sleep(250);
+                Thread.Sleep(200);
                 
-                // Perform single click
-                Console.WriteLine("Clicking...");
+                // Perform button click
+                Console.WriteLine("Clicking Activate button...");
                 mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, IntPtr.Zero);
                 Thread.Sleep(80);
                 mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, IntPtr.Zero);
                 
-                // Optional: tiny nudge + second click if first didn’t trigger
-                Thread.Sleep(120);
-                SetCursorPos(targetX + 2, targetY + 1);
-                Thread.Sleep(60);
-                mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, IntPtr.Zero);
-                Thread.Sleep(60);
-                mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, IntPtr.Zero);
-                
-                Console.WriteLine("✓ Click performed at corrected target!");
+                Thread.Sleep(200);
+                Console.WriteLine("✓ Two-step click completed!");
+                Console.WriteLine("1. Window activated ✓");
+                Console.WriteLine("2. Activate button clicked ✓");
             }
             catch (Exception ex)
             {

@@ -69,44 +69,24 @@ namespace ButtonRecognitionTool
                         Console.WriteLine("- May support accessibility APIs in newer versions");
                     }
                     
-                    // Special handling for AITrack
-                    string windowTitle = WindowsAPIHelper.GetWindowText(windowHandle);
-                    if (windowTitle.Contains("AITrack"))
+                    // Create some example button locations based on typical Qt layouts
+                    // This is very application-specific and would need customization
+                    buttons.Add(new ButtonInfo
                     {
-                        if (debugMode)
-                        {
-                            Console.WriteLine("\nDetected AITrack! Creating coordinate-based buttons...");
+                        Handle = IntPtr.Zero,
+                        Text = "Start Tracking (Estimated)",
+                        ClassName = "QtButton",
+                        IsEnabled = true,
+                        IsVisible = true,
+                        ControlId = 1,
+                        Bounds = new WindowsAPIHelper.RECT 
+                        { 
+                            Left = windowRect.Left + 50, 
+                            Top = windowRect.Bottom - 100,
+                            Right = windowRect.Left + 150,
+                            Bottom = windowRect.Bottom - 50
                         }
-                        
-                        var coordHelper = new CoordinateButtonHelper();
-                        var aiTrackButtons = coordHelper.CreateAITrackButtons(windowHandle, debugMode);
-                        buttons.AddRange(aiTrackButtons);
-                        
-                        if (debugMode)
-                        {
-                            Console.WriteLine($"Added {aiTrackButtons.Count} AITrack-specific buttons");
-                        }
-                    }
-                    else
-                    {
-                        // Generic Qt button for other Qt applications
-                        buttons.Add(new ButtonInfo
-                        {
-                            Handle = IntPtr.Zero,
-                            Text = "Start Tracking (Estimated)",
-                            ClassName = "QtButton",
-                            IsEnabled = true,
-                            IsVisible = true,
-                            ControlId = 1,
-                            Bounds = new WindowsAPIHelper.RECT 
-                            { 
-                                Left = windowRect.Left + 50, 
-                                Top = windowRect.Bottom - 100,
-                                Right = windowRect.Left + 150,
-                                Bottom = windowRect.Bottom - 50
-                            }
-                        });
-                    }
+                    });
                 }
                 
                 // For Windows Forms applications with WPF components

@@ -48,13 +48,6 @@ namespace ButtonRecognitionTool
                             MonitorButtonStates(recognizer, currentApp);
                             break;
                         case "9":
-                            RunSimHubAutomation();
-                            break;
-                        case "a":
-                        case "A":
-                            RunAITrackAutomation();
-                            break;
-                        case "0":
                         case "q":
                         case "quit":
                         case "exit":
@@ -65,7 +58,7 @@ namespace ButtonRecognitionTool
                             break;
                     }
 
-                    if (choice != "0" && choice?.ToLower() != "q" && 
+                    if (choice != "9" && choice?.ToLower() != "q" && 
                         choice?.ToLower() != "quit" && choice?.ToLower() != "exit")
                     {
                         Console.WriteLine("\nPress any key to continue...");
@@ -94,9 +87,7 @@ namespace ButtonRecognitionTool
             Console.WriteLine("6. Search Buttons");
             Console.WriteLine("7. List All Buttons");
             Console.WriteLine("8. Monitor Button States");
-            Console.WriteLine("9. SimHub Automation (Open + Activate)");
-            Console.WriteLine("A. AITrack Automation (Open + Start Tracking)");
-            Console.WriteLine("0. Exit");
+            Console.WriteLine("9. Exit");
             Console.WriteLine();
             Console.Write("Enter your choice: ");
         }
@@ -384,62 +375,6 @@ namespace ButtonRecognitionTool
 
             Console.ReadKey(); // Consume the key press
             Console.WriteLine("\nMonitoring stopped.");
-        }
-        
-        static void RunSimHubAutomation()
-        {
-            Console.WriteLine("\n=== SimHub Automation ===");
-            Console.WriteLine("This will open SimHub and click the Activate button.");
-            Console.Write("Continue? (y/n): ");
-            
-            string confirm = Console.ReadLine()?.Trim().ToLower();
-            if (confirm != "y" && confirm != "yes")
-            {
-                Console.WriteLine("SimHub automation cancelled.");
-                return;
-            }
-            
-            var automation = new SimHubAutomation();
-            bool success = automation.OpenSimHubAndActivate();
-            
-            if (success)
-            {
-                Console.WriteLine("\n✓ SimHub automation completed successfully!");
-                Console.WriteLine("SimHub should now be open with Activate button clicked.");
-            }
-            else
-            {
-                Console.WriteLine("\n✗ SimHub automation failed!");
-                Console.WriteLine("Please check that SimHub is installed and accessible.");
-            }
-        }
-        
-        static void RunAITrackAutomation()
-        {
-            Console.WriteLine("\n=== AITrack Automation ===");
-            Console.WriteLine("This will open AITrack and click the Start Tracking button.");
-            Console.Write("Continue? (y/n): ");
-            
-            string confirm = Console.ReadLine()?.Trim().ToLower();
-            if (confirm != "y" && confirm != "yes")
-            {
-                Console.WriteLine("AITrack automation cancelled.");
-                return;
-            }
-            
-            var automation = new AITrackAutomation();
-            bool success = automation.OpenAITrackAndStartTracking();
-            
-            if (success)
-            {
-                Console.WriteLine("\n✓ AITrack automation completed successfully!");
-                Console.WriteLine("AITrack should now be running and tracking should be started.");
-            }
-            else
-            {
-                Console.WriteLine("\n✗ AITrack automation failed!");
-                Console.WriteLine("Please check that AITrack is installed and accessible.");
-            }
         }
     }
 }

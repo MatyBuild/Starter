@@ -328,34 +328,115 @@ namespace ButtonRecognitionTool
         
         private static void PerformRealClick(IntPtr window, FoundButton button)
         {
-            Console.WriteLine($"\\nClicking on: {button}");
+            Console.WriteLine($"\nClicking on: {button}");
             Console.WriteLine("Watch your mouse cursor...");
             
             try
             {
                 // Bring window to front
                 SetForegroundWindow(window);
-                Thread.Sleep(500);
+                Thread.Sleep(400);
                 
-                // Move mouse to button center
-                Console.WriteLine($"Moving mouse to ({button.CenterX}, {button.CenterY})...");
-                SetCursorPos(button.CenterX, button.CenterY);
-                Thread.Sleep(500);
+                // Try to refine target using on-screen color detection (green button center)
+                RECT winRect;
+                GetWindowRect(window, out winRect);
+                var corrected = FindGreenCenterNear(button.CenterX, button.CenterY, winRect, 160, 40);
+                int targetX = corrected.x > 0 ? corrected.x : button.CenterX;
+                int targetY = corrected.y > 0 ? corrected.y : button.CenterY;
                 
-                // Perform click
+                Console.WriteLine($"Moving mouse to ({targetX}, {targetY})...");
+                SetCursorPos(targetX, targetY);
+                Thread.Sleep(250);
+                
+                // Perform single click
                 Console.WriteLine("Clicking...");
                 mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, IntPtr.Zero);
-                Thread.Sleep(100);
+                Thread.Sleep(80);
                 mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, IntPtr.Zero);
                 
-                Console.WriteLine("✓ Click performed!");
-                Console.WriteLine("Did the button respond in SimHub?");
+                // Optional: tiny nudge + second click if first didn’t trigger
+                Thread.Sleep(120);
+                SetCursorPos(targetX + 2, targetY + 1);
+                Thread.Sleep(60);
+                mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, IntPtr.Zero);
+                Thread.Sleep(60);
+                mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, IntPtr.Zero);
                 
+                Console.WriteLine("✓ Click performed at corrected target!");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error during click: {ex.Message}");
             }
+        }
+        
+        // Scan around a candidate point and return the center of the greenest cluster (Activate button)
+        private static (int x, int y) FindGreenCenterNear(int centerX, int centerY, RECT windowRect, int searchHalfWidth, int searchHalfHeight)
+        {
+            try
+            {
+                IntPtr hdc = GetDC(IntPtr.Zero);
+                if (hdc == IntPtr.Zero) return (0, 0);
+                
+                int startX = Math.Max(windowRect.Left, centerX - searchHalfWidth);
+                int endX = Math.Min(windowRect.Right - 1, centerX + searchHalfWidth);
+                int startY = Math.Max(windowRect.Top, centerY - searchHalfHeight);
+                int endY = Math.Min(windowRect.Bottom - 1, centerY + searchHalfHeight);
+                
+                int bestScore = 0;
+                int bestX = 0, bestY = 0;
+                
+                for (int y = startY; y <= endY; y += 2)
+                {
+                    int clusterScore = 0;
+                    int clusterStart = startX;
+                    int lastGreenX = startX;
+                    
+                    for (int x = startX; x <= endX; x += 2)
+                    {
+                        uint px = GetPixel(hdc, x, y);
+                        int r = (int)(px & 0xFF);
+                        int g = (int)((px >> 8) & 0xFF);
+                        int b = (int)((px >> 16) & 0xFF);
+                        
+                        bool isGreenish = g > 120 && g > r + 30 && g > b + 20;
+                        if (isGreenish)
+                        {
+                            clusterScore += 2;
+                            lastGreenX = x;
+                        }
+                        else
+                        {
+                            if (clusterScore > bestScore)
+                            {
+                                bestScore = clusterScore;
+                                bestX = (clusterStart + lastGreenX) / 2;
+                                bestY = y;
+                            }
+                            clusterScore = 0;
+                            clusterStart = x + 2;
+                        }
+                    }
+                    
+                    if (clusterScore > bestScore)
+                    {
+                        bestScore = clusterScore;
+                        bestX = (clusterStart + lastGreenX) / 2;
+                        bestY = y;
+                    }
+                }
+                
+                ReleaseDC(IntPtr.Zero, hdc);
+                
+                if (bestScore > 0)
+                {
+                    Console.WriteLine($"Corrected target to green cluster center at ({bestX}, {bestY})");
+                    return (bestX, bestY);
+                }
+            }
+            catch { }
+            
+            return (0, 0);
         }
         
         private static string GetWindowText(IntPtr hWnd)

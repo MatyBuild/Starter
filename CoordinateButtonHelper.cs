@@ -21,6 +21,23 @@ namespace ButtonRecognitionTool
         [DllImport("user32.dll")]
         static extern bool GetClientRect(IntPtr hWnd, out RECT lpRect);
         
+        [DllImport("user32.dll")]
+        static extern bool SetForegroundWindow(IntPtr hWnd);
+        
+        [DllImport("user32.dll")]
+        static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+        
+        [DllImport("user32.dll")]
+        static extern bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+        
+        private const uint WM_LBUTTONDOWN = 0x0201;
+        private const uint WM_LBUTTONUP = 0x0202;
+        
+        private static IntPtr MakeLParam(int x, int y)
+        {
+            return (IntPtr)((y << 16) | (x & 0xFFFF));
+        }
+        
         [StructLayout(LayoutKind.Sequential)]
         public struct POINT
         {
@@ -128,10 +145,14 @@ namespace ButtonRecognitionTool
         private ButtonInfo CreateCoordinateButton(IntPtr windowHandle, RECT windowRect, float relX, float relY, float relW, float relH, string text, string id, int controlId)
         {
             // Convert relative coordinates to absolute screen coordinates
-            int absoluteX = windowRect.Left + (int)(windowRect.Width * relX);
-            int absoluteY = windowRect.Top + (int)(windowRect.Height * relY);
-            int width = (int)(windowRect.Width * relW);
-            int height = (int)(windowRect.Height * relH);
+            // Use client area instead of window area for more precise clicking
+            int clientWidth = windowRect.Width;
+            int clientHeight = windowRect.Height;
+            
+            int absoluteX = windowRect.Left + (int)(clientWidth * relX);
+            int absoluteY = windowRect.Top + (int)(clientHeight * relY);
+            int width = Math.Max(50, (int)(clientWidth * relW)); // Minimum button width
+            int height = Math.Max(20, (int)(clientHeight * relH)); // Minimum button height
             
             return new ButtonInfo
             {
@@ -168,15 +189,36 @@ namespace ButtonRecognitionTool
                 if (debugMode)
                 {
                     Console.WriteLine($"Clicking '{button.Text}' at coordinates ({centerX}, {centerY})");
+                    Console.WriteLine($"Button bounds: Left={button.Bounds.Left}, Top={button.Bounds.Top}, Right={button.Bounds.Right}, Bottom={button.Bounds.Bottom}");
                 }
                 
-                // Move mouse to button and click
-                WindowsAPIHelper.SetCursorPos(centerX, centerY);
-                System.Threading.Thread.Sleep(100); // Small delay
+                // First, try to activate the window
+                SetForegroundWindow(button.Handle);
+                System.Threading.Thread.Sleep(200);
                 
-                WindowsAPIHelper.mouse_event(WindowsAPIHelper.MOUSEEVENTF_LEFTDOWN, (uint)centerX, (uint)centerY, 0, IntPtr.Zero);
+                // Move mouse to button position
+                WindowsAPIHelper.SetCursorPos(centerX, centerY);
+                System.Threading.Thread.Sleep(100);
+                
+                // Try multiple click methods for better compatibility
+                bool success = false;
+                
+                // Method 1: mouse_event at current cursor position
+                WindowsAPIHelper.mouse_event(WindowsAPIHelper.MOUSEEVENTF_LEFTDOWN, 0, 0, 0, IntPtr.Zero);
                 System.Threading.Thread.Sleep(50);
-                WindowsAPIHelper.mouse_event(WindowsAPIHelper.MOUSEEVENTF_LEFTUP, (uint)centerX, (uint)centerY, 0, IntPtr.Zero);
+                WindowsAPIHelper.mouse_event(WindowsAPIHelper.MOUSEEVENTF_LEFTUP, 0, 0, 0, IntPtr.Zero);
+                System.Threading.Thread.Sleep(100);
+                
+                // Method 2: Try SendMessage to window
+                SendMessage(button.Handle, WM_LBUTTONDOWN, (IntPtr)1, MakeLParam(centerX - button.Bounds.Left, centerY - button.Bounds.Top));
+                System.Threading.Thread.Sleep(50);
+                SendMessage(button.Handle, WM_LBUTTONUP, IntPtr.Zero, MakeLParam(centerX - button.Bounds.Left, centerY - button.Bounds.Top));
+                System.Threading.Thread.Sleep(100);
+                
+                // Method 3: Try PostMessage as alternative
+                PostMessage(button.Handle, WM_LBUTTONDOWN, (IntPtr)1, MakeLParam(centerX - button.Bounds.Left, centerY - button.Bounds.Top));
+                System.Threading.Thread.Sleep(50);
+                PostMessage(button.Handle, WM_LBUTTONUP, IntPtr.Zero, MakeLParam(centerX - button.Bounds.Left, centerY - button.Bounds.Top));
                 
                 if (debugMode)
                 {

@@ -48,6 +48,9 @@ namespace ButtonRecognitionTool
                             MonitorButtonStates(recognizer, currentApp);
                             break;
                         case "9":
+                            SimpleClickTest.TestSimpleClick();
+                            break;
+                        case "10":
                         case "q":
                         case "quit":
                         case "exit":
@@ -58,7 +61,7 @@ namespace ButtonRecognitionTool
                             break;
                     }
 
-                    if (choice != "9" && choice?.ToLower() != "q" && 
+                    if (choice != "10" && choice?.ToLower() != "q" && 
                         choice?.ToLower() != "quit" && choice?.ToLower() != "exit")
                     {
                         Console.WriteLine("\nPress any key to continue...");
@@ -87,7 +90,8 @@ namespace ButtonRecognitionTool
             Console.WriteLine("6. Search Buttons");
             Console.WriteLine("7. List All Buttons");
             Console.WriteLine("8. Monitor Button States");
-            Console.WriteLine("9. Exit");
+            Console.WriteLine("9. Simple Click Test (SimHub Activate Button)");
+            Console.WriteLine("10. Exit");
             Console.WriteLine();
             Console.Write("Enter your choice: ");
         }

@@ -48,7 +48,7 @@ namespace ButtonRecognitionTool
                             MonitorButtonStates(recognizer, currentApp);
                             break;
                         case "9":
-                            SimpleClickTest.TestSimpleClick();
+                            RealButtonFinder.FindAndClickRealButton();
                             break;
                         case "10":
                         case "q":
@@ -90,7 +90,7 @@ namespace ButtonRecognitionTool
             Console.WriteLine("6. Search Buttons");
             Console.WriteLine("7. List All Buttons");
             Console.WriteLine("8. Monitor Button States");
-            Console.WriteLine("9. Simple Click Test (SimHub Activate Button)");
+            Console.WriteLine("9. Real Button Finder (Find & Click Actual Buttons)");
             Console.WriteLine("10. Exit");
             Console.WriteLine();
             Console.Write("Enter your choice: ");
